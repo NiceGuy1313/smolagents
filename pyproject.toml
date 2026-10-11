@@ -139,3 +139,15 @@ lines-after-imports = 2
 [project.scripts]
 smolagent = "smolagents.cli:main"
 webagent = "smolagents.vision_web_browser:main"
+
+[dependency-groups]
+# Agent Observatory dashboard (examples/agent_dashboard); installed by a plain `uv sync`.
+dashboard = [
+  "smolagents[litellm,toolkit]",
+  "fastapi",
+  "uvicorn[standard]",
+  "pytest",
+]
+
+[tool.uv]
+default-groups = ["dashboard"]

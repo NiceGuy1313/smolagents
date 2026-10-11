@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "smolagents Agent Loop",
+    "output": "static/agent-architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1240,
+      720
+    ],
+    "repository": {
+      "url": "https://github.com/NiceGuy1313/smolagents",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "2f94da0c019e2bd163e369632b0f23aa647ac485"
+    }
+  },
+  "components": [
+    {"id":"task","type":"external","label":"Task","sublabel":"dashboard input","pos":[20,310],"size":[130,64]},
+    {"id":"run","type":"backend","label":"MultiStepAgent.run","sublabel":"_run_stream step loop","pos":[180,310],"size":[170,64],"sources":[{"path":"src/smolagents/agents.py","line":540,"label":"step loop"}]},
+    {"id":"memory","type":"database","label":"AgentMemory","sublabel":"write_memory_to_messages","pos":[400,110],"size":[200,72],"sources":[{"path":"src/smolagents/agents.py","line":785,"label":"memory -> messages"}]},
+    {"id":"planning","type":"cloud","label":"Planning Step","sublabel":"every planning_interval (optional)","pos":[660,110],"size":[210,72],"tag":"[LLM_QUERY] planning","sources":[{"path":"src/smolagents/agents.py","line":663,"label":"planning call + [LLM_QUERY]"}]},
+    {"id":"llm","type":"cloud","label":"Model.generate","sublabel":"LiteLLM / any Model","pos":[400,300],"size":[200,72],"tag":"[LLM_QUERY] [LLM_ERROR]","sources":[{"path":"src/smolagents/agents.py","line":625,"end_line":647,"label":"boundary log helpers"},{"path":"src/smolagents/agents.py","line":1692,"label":"CodeAgent [LLM_QUERY]"},{"path":"src/smolagents/agents.py","line":1321,"label":"ToolCallingAgent [LLM_QUERY]"}]},
+    {"id":"parse","type":"messagebus","label":"Parse Action","sublabel":"ChatMessage → <code> | tool_calls","pos":[660,300],"size":[210,72],"sources":[{"path":"src/smolagents/agents.py","line":1747,"end_line":1753,"label":"code parsing + [LLM_RESPONSE]"},{"path":"src/smolagents/agents.py","line":1367,"label":"tool_calls + [LLM_RESPONSE]"}],"tag":"[LLM_RESPONSE]"},
+    {"id":"python","type":"backend","label":"LocalPythonExecutor","sublabel":"CodeAgent: runs generated code","pos":[930,215],"size":[240,72],"sources":[{"path":"src/smolagents/local_python_executor.py","line":1747,"label":"code execution"}]},
+    {"id":"toolcall","type":"backend","label":"execute_tool_call","sublabel":"ToolCallingAgent: JSON tool calls","pos":[930,385],"size":[240,72],"sources":[{"path":"src/smolagents/agents.py","line":1490,"label":"tool call"}]},
+    {"id":"tool","type":"security","label":"Tool.__call__ → forward","sublabel":"web_search, visit_webpage, final_answer","pos":[930,560],"size":[240,72],"tag":"[TOOL_EXECUTION_*]","sources":[{"path":"src/smolagents/tools.py","line":248,"end_line":265,"label":"[TOOL_EXECUTION_*]"}]},
+    {"id":"step","type":"database","label":"ActionStep","sublabel":"observations, error, tokens","pos":[620,560],"size":[200,72],"tag":"step_callbacks","sources":[{"path":"src/smolagents/agents.py","line":620,"label":"finalize step"}]},
+    {"id":"final","type":"frontend","label":"Final Answer","sublabel":"final_answer() -> run output","pos":[160,560],"size":[190,72],"sources":[{"path":"src/smolagents/default_tools.py","line":83,"label":"FinalAnswerTool"},{"path":"src/smolagents/agents.py","line":837,"label":"forced final answer"}]}
+  ],
+  "boundaries": [
+    {"kind":"region","label":"one ActionStep","wraps":["memory","llm","parse","python","toolcall","tool","step"],"pad":24}
+  ],
+  "connections": [
+    {"from":"task","to":"run","label":"start","variant":"emphasis"},
+    {"from":"run","to":"memory","label":"each step","variant":"emphasis"},
+    {"from":"memory","to":"planning","label":"if planning_interval","variant":"dashed","fromSide":"top","toSide":"top","via":[[500,80],[765,80]]},
+    {"from":"memory","to":"llm","label":"messages","variant":"emphasis","fromSide":"bottom","toSide":"top"},
+    {"from":"llm","to":"parse","variant":"emphasis"},
+    {"from":"parse","to":"python","label":"code","variant":"emphasis","fromSide":"right","toSide":"left","via":[[900,336],[900,251]]},
+    {"from":"parse","to":"toolcall","label":"tool_calls","variant":"emphasis","fromSide":"right","toSide":"left","via":[[900,336],[900,421]]},
+    {"from":"python","to":"tool","label":"tool(...) in code","variant":"emphasis","fromSide":"right","toSide":"right","via":[[1200,251],[1200,596]]},
+    {"from":"toolcall","to":"tool","label":"tool(**args)","variant":"emphasis","fromSide":"bottom","toSide":"top"},
+    {"from":"tool","to":"step","label":"output | error","variant":"emphasis"},
+    {"from":"step","to":"memory","label":"next step","variant":"dashed"},
+    {"from":"step","to":"final","label":"is_final_answer","variant":"emphasis"}
+  ],
+  "cards": [
+    {"dot":"cyan","title":"LLM 경계","items":["planning, action, max-steps 강제 답변 모두 [LLM_QUERY] 로그","응답을 액션으로 파싱한 뒤 [LLM_RESPONSE], 생성 실패 시 [LLM_ERROR]"]},
+    {"dot":"amber","title":"CodeAgent vs ToolCallingAgent","items":["CodeAgent: LLM이 쓴 파이썬 코드 안에서 tool 호출, step당 여러 번 가능","ToolCallingAgent: tool_calls JSON → execute_tool_call, 병렬 실행 가능","두 경로 모두 Tool.__call__ → forward로 모임"]},
+    {"dot":"emerald","title":"관측 지점","items":["agents.py: [LLM_QUERY] / [LLM_RESPONSE] / [LLM_ERROR]","tools.py: [TOOL_EXECUTION_START / END / ERROR]","step 결과는 step_callbacks (ActionStep, PlanningStep)"]}
+  ]
+}
