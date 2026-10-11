@@ -26,7 +26,7 @@ from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextvars import copy_context
 from dataclasses import dataclass
-from logging import getLogger
+from logging import DEBUG, getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Type, TypeAlias, TypedDict, Union
 
@@ -622,6 +622,30 @@ You have been provided with these additional arguments, that you can access dire
             memory_step.timing.end_time = time.time()
         self.step_callbacks.callback(memory_step, agent=self)
 
+    def _log_llm_query(self, input_messages: list[ChatMessage], purpose: str) -> None:
+        logger.debug(
+            "[LLM_QUERY] step=%s model=%s messages=%s purpose=%s",
+            self.step_number,
+            getattr(self.model, "model_id", None),
+            len(input_messages),
+            purpose,
+        )
+
+    def _log_llm_response(self, purpose: str, actions: list[dict[str, Any]], token_usage: TokenUsage | None) -> None:
+        if not logger.isEnabledFor(DEBUG):
+            return
+        logger.debug(
+            "[LLM_RESPONSE] step=%s purpose=%s actions=%s input_tokens=%s output_tokens=%s",
+            self.step_number,
+            purpose,
+            json.dumps(actions, ensure_ascii=False, default=str),
+            token_usage.input_tokens if token_usage else None,
+            token_usage.output_tokens if token_usage else None,
+        )
+
+    def _log_llm_error(self, purpose: str, error: Exception) -> None:
+        logger.debug("[LLM_ERROR] step=%s purpose=%s error_type=%s", self.step_number, purpose, type(error).__name__)
+
     def _handle_max_steps_reached(self, task: str) -> Any:
         action_step_start_time = time.time()
         final_answer = self.provide_final_answer(task)
@@ -655,6 +679,7 @@ You have been provided with these additional arguments, that you can access dire
                     ],
                 )
             ]
+            self._log_llm_query(input_messages, "planning")
             if self.stream_outputs and hasattr(self.model, "generate_stream"):
                 plan_message_content = ""
                 output_stream = self.model.generate_stream(input_messages, stop_sequences=["<end_plan>"])  # type: ignore
@@ -711,6 +736,7 @@ You have been provided with these additional arguments, that you can access dire
                 ],
             )
             input_messages = [plan_update_pre] + memory_messages + [plan_update_post]
+            self._log_llm_query(input_messages, "planning")
             if self.stream_outputs and hasattr(self.model, "generate_stream"):
                 plan_message_content = ""
                 input_tokens, output_tokens = 0, 0
@@ -736,6 +762,7 @@ You have been provided with these additional arguments, that you can access dire
             plan = textwrap.dedent(
                 f"""I still need to solve the task I was given:\n```\n{self.task}\n```\n\nHere are the facts I know and my new/updated plan of action to solve the task:\n```\n{plan_message_content}\n```"""
             )
+        self._log_llm_response("planning", [], TokenUsage(input_tokens=input_tokens, output_tokens=output_tokens))
         log_headline = "Initial plan" if is_first_step else "Updated plan"
         self.logger.log(Rule(f"[bold]{log_headline}", style="orange"), Text(plan), level=LogLevel.INFO)
         yield PlanningStep(
@@ -843,10 +870,13 @@ You have been provided with these additional arguments, that you can access dire
                 ],
             )
         )
+        self._log_llm_query(messages, "final_answer")
         try:
             chat_message: ChatMessage = self.model.generate(messages)
+            self._log_llm_response("final_answer", [{"final_answer": chat_message.content}], chat_message.token_usage)
             return chat_message
         except Exception as e:
+            self._log_llm_error("final_answer", e)
             return ChatMessage(
                 role=MessageRole.ASSISTANT,
                 content=[{"type": "text", "text": f"Error in generating final LLM output: {e}"}],
@@ -1288,6 +1318,7 @@ class ToolCallingAgent(MultiStepAgent):
         # Add new step in logs
         memory_step.model_input_messages = input_messages
 
+        self._log_llm_query(input_messages, "action")
         try:
             if self.stream_outputs and hasattr(self.model, "generate_stream"):
                 output_stream = self.model.generate_stream(
@@ -1322,6 +1353,7 @@ class ToolCallingAgent(MultiStepAgent):
             memory_step.model_output = chat_message.content
             memory_step.token_usage = chat_message.token_usage
         except Exception as e:
+            self._log_llm_error("action", e)
             raise AgentGenerationError(f"Error while generating output:\n{e}", self.logger) from e
 
         if chat_message.tool_calls is None or len(chat_message.tool_calls) == 0:
@@ -1332,6 +1364,11 @@ class ToolCallingAgent(MultiStepAgent):
         else:
             for tool_call in chat_message.tool_calls:
                 tool_call.function.arguments = parse_json_if_needed(tool_call.function.arguments)
+        self._log_llm_response(
+            "action",
+            [{tool_call.function.name: tool_call.function.arguments} for tool_call in chat_message.tool_calls or []],
+            chat_message.token_usage,
+        )
         final_answer, got_final_answer = None, False
         for output in self.process_tool_calls(chat_message, memory_step):
             yield output
@@ -1652,6 +1689,7 @@ class CodeAgent(MultiStepAgent):
         if self.code_block_tags[1] not in self.code_block_tags[0]:
             # If the closing tag is contained in the opening tag, adding it as a stop sequence would cut short any code generation
             stop_sequences.append(self.code_block_tags[1])
+        self._log_llm_query(input_messages, "action")
         try:
             additional_args: dict[str, Any] = {}
             if self._use_structured_outputs_internally:
@@ -1697,6 +1735,7 @@ class CodeAgent(MultiStepAgent):
             memory_step.token_usage = chat_message.token_usage
             memory_step.model_output = output_text
         except Exception as e:
+            self._log_llm_error("action", e)
             raise AgentGenerationError(f"Error in generating model output:\n{e}", self.logger) from e
 
         ### Parse output ###
@@ -1711,6 +1750,7 @@ class CodeAgent(MultiStepAgent):
         except Exception as e:
             error_msg = f"Error in code parsing:\n{e}\nMake sure to provide correct code blobs."
             raise AgentParsingError(error_msg, self.logger)
+        self._log_llm_response("action", [{"python_interpreter": code_action}], chat_message.token_usage)
 
         tool_call = ToolCall(
             name="python_interpreter",

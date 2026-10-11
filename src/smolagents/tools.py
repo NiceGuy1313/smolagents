@@ -24,6 +24,7 @@ import os
 import sys
 import tempfile
 import textwrap
+import time
 import types
 import warnings
 from abc import ABC, abstractmethod
@@ -243,7 +244,25 @@ class Tool(BaseTool):
 
         if sanitize_inputs_outputs:
             args, kwargs = handle_agent_input_types(*args, **kwargs)
-        outputs = self.forward(*args, **kwargs)
+        started_at = time.perf_counter()
+        params = {**dict(zip(self.inputs, args)), **kwargs}
+        logger.debug("[TOOL_EXECUTION_START] action=%s params=%s", self.name, params)
+        try:
+            outputs = self.forward(*args, **kwargs)
+        except Exception as e:
+            logger.debug(
+                "[TOOL_EXECUTION_ERROR] action=%s error_type=%s duration_seconds=%.3f",
+                self.name,
+                type(e).__name__,
+                time.perf_counter() - started_at,
+            )
+            raise
+        logger.debug(
+            "[TOOL_EXECUTION_END] action=%s result_type=%s duration_seconds=%.3f",
+            self.name,
+            type(outputs).__name__,
+            time.perf_counter() - started_at,
+        )
         if sanitize_inputs_outputs:
             outputs = handle_agent_output_types(outputs, self.output_type)
         return outputs
