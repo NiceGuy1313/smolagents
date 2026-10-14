@@ -1,0 +1,1455 @@
+Module(
+  body=[
+    Import(
+      names=[
+        alias(name='json')]),
+    ImportFrom(
+      module='dataclasses',
+      names=[
+        alias(name='dataclass'),
+        alias(name='field')],
+      level=0),
+    ImportFrom(
+      module='enum',
+      names=[
+        alias(name='IntEnum')],
+      level=0),
+    ImportFrom(
+      module='rich',
+      names=[
+        alias(name='box')],
+      level=0),
+    ImportFrom(
+      module='rich.console',
+      names=[
+        alias(name='Console'),
+        alias(name='Group')],
+      level=0),
+    ImportFrom(
+      module='rich.panel',
+      names=[
+        alias(name='Panel')],
+      level=0),
+    ImportFrom(
+      module='rich.rule',
+      names=[
+        alias(name='Rule')],
+      level=0),
+    ImportFrom(
+      module='rich.syntax',
+      names=[
+        alias(name='Syntax')],
+      level=0),
+    ImportFrom(
+      module='rich.table',
+      names=[
+        alias(name='Table')],
+      level=0),
+    ImportFrom(
+      module='rich.text',
+      names=[
+        alias(name='Text')],
+      level=0),
+    ImportFrom(
+      module='rich.tree',
+      names=[
+        alias(name='Tree')],
+      level=0),
+    ImportFrom(
+      module='smolagents.utils',
+      names=[
+        alias(name='sanitize_for_rich')],
+      level=0),
+    Assign(
+      targets=[
+        Name(id='__all__', ctx=Store())],
+      value=List(
+        elts=[
+          Constant(value='AgentLogger'),
+          Constant(value='LogLevel'),
+          Constant(value='Monitor'),
+          Constant(value='TokenUsage'),
+          Constant(value='Timing')],
+        ctx=Load())),
+    ClassDef(
+      name='TokenUsage',
+      body=[
+        Expr(
+          value=Constant(value='\n    Contains the token usage information for a given step or run.\n    ')),
+        AnnAssign(
+          target=Name(id='input_tokens', ctx=Store()),
+          annotation=Name(id='int', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='output_tokens', ctx=Store()),
+          annotation=Name(id='int', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='total_tokens', ctx=Store()),
+          annotation=Name(id='int', ctx=Load()),
+          value=Call(
+            func=Name(id='field', ctx=Load()),
+            keywords=[
+              keyword(
+                arg='init',
+                value=Constant(value=False))]),
+          simple=1),
+        FunctionDef(
+          name='__post_init__',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='total_tokens',
+                  ctx=Store())],
+              value=BinOp(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='input_tokens',
+                  ctx=Load()),
+                op=Add(),
+                right=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='output_tokens',
+                  ctx=Load())))]),
+        FunctionDef(
+          name='dict',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Dict(
+                keys=[
+                  Constant(value='input_tokens'),
+                  Constant(value='output_tokens'),
+                  Constant(value='total_tokens')],
+                values=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='input_tokens',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='output_tokens',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='total_tokens',
+                    ctx=Load())]))])],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='Timing',
+      body=[
+        Expr(
+          value=Constant(value='\n    Contains the timing information for a given step or run.\n    ')),
+        AnnAssign(
+          target=Name(id='start_time', ctx=Store()),
+          annotation=Name(id='float', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='end_time', ctx=Store()),
+          annotation=BinOp(
+            left=Name(id='float', ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        FunctionDef(
+          name='duration',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=IfExp(
+                test=Compare(
+                  left=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='end_time',
+                    ctx=Load()),
+                  ops=[
+                    Is()],
+                  comparators=[
+                    Constant(value=None)]),
+                body=Constant(value=None),
+                orelse=BinOp(
+                  left=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='end_time',
+                    ctx=Load()),
+                  op=Sub(),
+                  right=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='start_time',
+                    ctx=Load()))))],
+          decorator_list=[
+            Name(id='property', ctx=Load())]),
+        FunctionDef(
+          name='dict',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Dict(
+                keys=[
+                  Constant(value='start_time'),
+                  Constant(value='end_time'),
+                  Constant(value='duration')],
+                values=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='start_time',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='end_time',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='duration',
+                    ctx=Load())]))]),
+        FunctionDef(
+          name='__repr__',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=JoinedStr(
+                values=[
+                  Constant(value='Timing(start_time='),
+                  FormattedValue(
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='start_time',
+                      ctx=Load()),
+                    conversion=-1),
+                  Constant(value=', end_time='),
+                  FormattedValue(
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='end_time',
+                      ctx=Load()),
+                    conversion=-1),
+                  Constant(value=', duration='),
+                  FormattedValue(
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='duration',
+                      ctx=Load()),
+                    conversion=-1),
+                  Constant(value=')')]))],
+          returns=Name(id='str', ctx=Load()))],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='Monitor',
+      body=[
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='tracked_model'),
+              arg(arg='logger')]),
+          body=[
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='step_durations',
+                  ctx=Store())],
+              value=List(ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='tracked_model',
+                  ctx=Store())],
+              value=Name(id='tracked_model', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='logger',
+                  ctx=Store())],
+              value=Name(id='logger', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='total_input_token_count',
+                  ctx=Store())],
+              value=Constant(value=0)),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='total_output_token_count',
+                  ctx=Store())],
+              value=Constant(value=0))]),
+        FunctionDef(
+          name='get_total_token_counts',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Call(
+                func=Name(id='TokenUsage', ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='input_tokens',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='total_input_token_count',
+                      ctx=Load())),
+                  keyword(
+                    arg='output_tokens',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='total_output_token_count',
+                      ctx=Load()))]))],
+          returns=Name(id='TokenUsage', ctx=Load())),
+        FunctionDef(
+          name='reset',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='step_durations',
+                  ctx=Store())],
+              value=List(ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='total_input_token_count',
+                  ctx=Store())],
+              value=Constant(value=0)),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='total_output_token_count',
+                  ctx=Store())],
+              value=Constant(value=0))]),
+        FunctionDef(
+          name='update_metrics',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='step_log')]),
+          body=[
+            Expr(
+              value=Constant(value='Update the metrics of the monitor.\n\n        Args:\n            step_log ([`MemoryStep`]): Step log to update the monitor with.\n        ')),
+            Assign(
+              targets=[
+                Name(id='step_duration', ctx=Store())],
+              value=Attribute(
+                value=Attribute(
+                  value=Name(id='step_log', ctx=Load()),
+                  attr='timing',
+                  ctx=Load()),
+                attr='duration',
+                ctx=Load())),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='step_durations',
+                    ctx=Load()),
+                  attr='append',
+                  ctx=Load()),
+                args=[
+                  Name(id='step_duration', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='console_outputs', ctx=Store())],
+              value=JoinedStr(
+                values=[
+                  Constant(value='[Step '),
+                  FormattedValue(
+                    value=Call(
+                      func=Name(id='len', ctx=Load()),
+                      args=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='step_durations',
+                          ctx=Load())]),
+                    conversion=-1),
+                  Constant(value=': Duration '),
+                  FormattedValue(
+                    value=Name(id='step_duration', ctx=Load()),
+                    conversion=-1,
+                    format_spec=JoinedStr(
+                      values=[
+                        Constant(value='.2f')])),
+                  Constant(value=' seconds')])),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='step_log', ctx=Load()),
+                  attr='token_usage',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                AugAssign(
+                  target=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='total_input_token_count',
+                    ctx=Store()),
+                  op=Add(),
+                  value=Attribute(
+                    value=Attribute(
+                      value=Name(id='step_log', ctx=Load()),
+                      attr='token_usage',
+                      ctx=Load()),
+                    attr='input_tokens',
+                    ctx=Load())),
+                AugAssign(
+                  target=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='total_output_token_count',
+                    ctx=Store()),
+                  op=Add(),
+                  value=Attribute(
+                    value=Attribute(
+                      value=Name(id='step_log', ctx=Load()),
+                      attr='token_usage',
+                      ctx=Load()),
+                    attr='output_tokens',
+                    ctx=Load())),
+                AugAssign(
+                  target=Name(id='console_outputs', ctx=Store()),
+                  op=Add(),
+                  value=JoinedStr(
+                    values=[
+                      Constant(value='| Input tokens: '),
+                      FormattedValue(
+                        value=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='total_input_token_count',
+                          ctx=Load()),
+                        conversion=-1,
+                        format_spec=JoinedStr(
+                          values=[
+                            Constant(value=',')])),
+                      Constant(value=' | Output tokens: '),
+                      FormattedValue(
+                        value=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='total_output_token_count',
+                          ctx=Load()),
+                        conversion=-1,
+                        format_spec=JoinedStr(
+                          values=[
+                            Constant(value=',')]))]))]),
+            AugAssign(
+              target=Name(id='console_outputs', ctx=Store()),
+              op=Add(),
+              value=Constant(value=']')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='logger',
+                    ctx=Load()),
+                  attr='log',
+                  ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Text', ctx=Load()),
+                    args=[
+                      Name(id='console_outputs', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='style',
+                        value=Constant(value='dim'))])],
+                keywords=[
+                  keyword(
+                    arg='level',
+                    value=Constant(value=1))]))])]),
+    ClassDef(
+      name='LogLevel',
+      bases=[
+        Name(id='IntEnum', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='OFF', ctx=Store())],
+          value=UnaryOp(
+            op=USub(),
+            operand=Constant(value=1))),
+        Assign(
+          targets=[
+            Name(id='ERROR', ctx=Store())],
+          value=Constant(value=0)),
+        Assign(
+          targets=[
+            Name(id='INFO', ctx=Store())],
+          value=Constant(value=1)),
+        Assign(
+          targets=[
+            Name(id='DEBUG', ctx=Store())],
+          value=Constant(value=2))]),
+    Assign(
+      targets=[
+        Name(id='YELLOW_HEX', ctx=Store())],
+      value=Constant(value='#d4b702')),
+    ClassDef(
+      name='AgentLogger',
+      body=[
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='level',
+                annotation=Name(id='LogLevel', ctx=Load())),
+              arg(
+                arg='console',
+                annotation=BinOp(
+                  left=Name(id='Console', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))],
+            defaults=[
+              Attribute(
+                value=Name(id='LogLevel', ctx=Load()),
+                attr='INFO',
+                ctx=Load()),
+              Constant(value=None)]),
+          body=[
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='level',
+                  ctx=Store())],
+              value=Name(id='level', ctx=Load())),
+            If(
+              test=Compare(
+                left=Name(id='console', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='console',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='Console', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='highlight',
+                        value=Constant(value=False))]))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='console',
+                      ctx=Store())],
+                  value=Name(id='console', ctx=Load()))])]),
+        FunctionDef(
+          name='log',
+          args=arguments(
+            args=[
+              arg(arg='self')],
+            vararg=arg(arg='args'),
+            kwonlyargs=[
+              arg(
+                arg='level',
+                annotation=BinOp(
+                  left=BinOp(
+                    left=Name(id='int', ctx=Load()),
+                    op=BitOr(),
+                    right=Name(id='str', ctx=Load())),
+                  op=BitOr(),
+                  right=Name(id='LogLevel', ctx=Load())))],
+            kw_defaults=[
+              Attribute(
+                value=Name(id='LogLevel', ctx=Load()),
+                attr='INFO',
+                ctx=Load())],
+            kwarg=arg(arg='kwargs')),
+          body=[
+            Expr(
+              value=Constant(value='Logs a message to the console.\n\n        Args:\n            level (LogLevel, optional): Defaults to LogLevel.INFO.\n        ')),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='level', ctx=Load()),
+                  Name(id='str', ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='level', ctx=Store())],
+                  value=Subscript(
+                    value=Name(id='LogLevel', ctx=Load()),
+                    slice=Call(
+                      func=Attribute(
+                        value=Name(id='level', ctx=Load()),
+                        attr='upper',
+                        ctx=Load())),
+                    ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Name(id='level', ctx=Load()),
+                ops=[
+                  LtE()],
+                comparators=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='level',
+                    ctx=Load())]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='console',
+                        ctx=Load()),
+                      attr='print',
+                      ctx=Load()),
+                    args=[
+                      Starred(
+                        value=Name(id='args', ctx=Load()),
+                        ctx=Load())],
+                    keywords=[
+                      keyword(
+                        value=Name(id='kwargs', ctx=Load()))]))])],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='log_error',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='error_message',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='log',
+                  ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Text', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='sanitize_for_rich', ctx=Load()),
+                        args=[
+                          Name(id='error_message', ctx=Load())])],
+                    keywords=[
+                      keyword(
+                        arg='style',
+                        value=Constant(value='bold red'))])],
+                keywords=[
+                  keyword(
+                    arg='level',
+                    value=Attribute(
+                      value=Name(id='LogLevel', ctx=Load()),
+                      attr='ERROR',
+                      ctx=Load()))]))],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='log_markdown',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='content',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='title',
+                annotation=BinOp(
+                  left=Name(id='str', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(arg='level'),
+              arg(arg='style')],
+            defaults=[
+              Constant(value=None),
+              Attribute(
+                value=Name(id='LogLevel', ctx=Load()),
+                attr='INFO',
+                ctx=Load()),
+              Name(id='YELLOW_HEX', ctx=Load())]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='markdown_content', ctx=Store())],
+              value=Call(
+                func=Name(id='Syntax', ctx=Load()),
+                args=[
+                  Name(id='content', ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='lexer',
+                    value=Constant(value='markdown')),
+                  keyword(
+                    arg='theme',
+                    value=Constant(value='github-dark')),
+                  keyword(
+                    arg='word_wrap',
+                    value=Constant(value=True))])),
+            If(
+              test=Name(id='title', ctx=Load()),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='log',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='Group', ctx=Load()),
+                        args=[
+                          Call(
+                            func=Name(id='Rule', ctx=Load()),
+                            args=[
+                              BinOp(
+                                left=Constant(value='[bold italic]'),
+                                op=Add(),
+                                right=Name(id='title', ctx=Load()))],
+                            keywords=[
+                              keyword(
+                                arg='align',
+                                value=Constant(value='left')),
+                              keyword(
+                                arg='style',
+                                value=Name(id='style', ctx=Load()))]),
+                          Name(id='markdown_content', ctx=Load())])],
+                    keywords=[
+                      keyword(
+                        arg='level',
+                        value=Name(id='level', ctx=Load()))]))],
+              orelse=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='log',
+                      ctx=Load()),
+                    args=[
+                      Name(id='markdown_content', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='level',
+                        value=Name(id='level', ctx=Load()))]))])],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='log_code',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='title',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='content',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='level',
+                annotation=Name(id='int', ctx=Load()))],
+            defaults=[
+              Attribute(
+                value=Name(id='LogLevel', ctx=Load()),
+                attr='INFO',
+                ctx=Load())]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='log',
+                  ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Panel', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='Syntax', ctx=Load()),
+                        args=[
+                          Name(id='content', ctx=Load())],
+                        keywords=[
+                          keyword(
+                            arg='lexer',
+                            value=Constant(value='python')),
+                          keyword(
+                            arg='theme',
+                            value=Constant(value='monokai')),
+                          keyword(
+                            arg='word_wrap',
+                            value=Constant(value=True))])],
+                    keywords=[
+                      keyword(
+                        arg='title',
+                        value=BinOp(
+                          left=Constant(value='[bold]'),
+                          op=Add(),
+                          right=Name(id='title', ctx=Load()))),
+                      keyword(
+                        arg='title_align',
+                        value=Constant(value='left')),
+                      keyword(
+                        arg='box',
+                        value=Attribute(
+                          value=Name(id='box', ctx=Load()),
+                          attr='HORIZONTALS',
+                          ctx=Load()))])],
+                keywords=[
+                  keyword(
+                    arg='level',
+                    value=Name(id='level', ctx=Load()))]))],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='log_rule',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='title',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='level',
+                annotation=Name(id='int', ctx=Load()))],
+            defaults=[
+              Attribute(
+                value=Name(id='LogLevel', ctx=Load()),
+                attr='INFO',
+                ctx=Load())]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='log',
+                  ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Rule', ctx=Load()),
+                    args=[
+                      BinOp(
+                        left=Constant(value='[bold white]'),
+                        op=Add(),
+                        right=Name(id='title', ctx=Load()))],
+                    keywords=[
+                      keyword(
+                        arg='characters',
+                        value=Constant(value='━')),
+                      keyword(
+                        arg='style',
+                        value=Name(id='YELLOW_HEX', ctx=Load()))])],
+                keywords=[
+                  keyword(
+                    arg='level',
+                    value=Attribute(
+                      value=Name(id='LogLevel', ctx=Load()),
+                      attr='INFO',
+                      ctx=Load()))]))],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='log_task',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='content',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='subtitle',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='title',
+                annotation=BinOp(
+                  left=Name(id='str', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(
+                arg='level',
+                annotation=Name(id='LogLevel', ctx=Load()))],
+            defaults=[
+              Constant(value=None),
+              Attribute(
+                value=Name(id='LogLevel', ctx=Load()),
+                attr='INFO',
+                ctx=Load())]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='safe_content', ctx=Store())],
+              value=Call(
+                func=Name(id='sanitize_for_rich', ctx=Load()),
+                args=[
+                  Name(id='content', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='safe_subtitle', ctx=Store())],
+              value=Call(
+                func=Name(id='sanitize_for_rich', ctx=Load()),
+                args=[
+                  Name(id='subtitle', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='content_text', ctx=Store())],
+              value=BinOp(
+                left=BinOp(
+                  left=Call(
+                    func=Name(id='Text', ctx=Load()),
+                    args=[
+                      Constant(value='\n')]),
+                  op=Add(),
+                  right=Call(
+                    func=Name(id='Text', ctx=Load()),
+                    args=[
+                      Name(id='safe_content', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='style',
+                        value=Constant(value='bold'))])),
+                op=Add(),
+                right=Call(
+                  func=Name(id='Text', ctx=Load()),
+                  args=[
+                    Constant(value='\n')]))),
+            Assign(
+              targets=[
+                Name(id='subtitle_text', ctx=Store())],
+              value=Call(
+                func=Name(id='Text', ctx=Load()),
+                args=[
+                  Name(id='safe_subtitle', ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='log',
+                  ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Panel', ctx=Load()),
+                    args=[
+                      Name(id='content_text', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='title',
+                        value=BinOp(
+                          left=Constant(value='[bold]New run'),
+                          op=Add(),
+                          right=IfExp(
+                            test=Name(id='title', ctx=Load()),
+                            body=JoinedStr(
+                              values=[
+                                Constant(value=' - '),
+                                FormattedValue(
+                                  value=Name(id='title', ctx=Load()),
+                                  conversion=-1)]),
+                            orelse=Constant(value='')))),
+                      keyword(
+                        arg='subtitle',
+                        value=Name(id='subtitle_text', ctx=Load())),
+                      keyword(
+                        arg='border_style',
+                        value=Name(id='YELLOW_HEX', ctx=Load())),
+                      keyword(
+                        arg='subtitle_align',
+                        value=Constant(value='left'))])],
+                keywords=[
+                  keyword(
+                    arg='level',
+                    value=Name(id='level', ctx=Load()))]))],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='log_messages',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='messages',
+                annotation=Subscript(
+                  value=Name(id='list', ctx=Load()),
+                  slice=Name(id='dict', ctx=Load()),
+                  ctx=Load())),
+              arg(
+                arg='level',
+                annotation=Name(id='LogLevel', ctx=Load()))],
+            defaults=[
+              Attribute(
+                value=Name(id='LogLevel', ctx=Load()),
+                attr='DEBUG',
+                ctx=Load())]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='messages_as_string', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Constant(value='\n'),
+                  attr='join',
+                  ctx=Load()),
+                args=[
+                  ListComp(
+                    elt=Call(
+                      func=Attribute(
+                        value=Name(id='json', ctx=Load()),
+                        attr='dumps',
+                        ctx=Load()),
+                      args=[
+                        Call(
+                          func=Attribute(
+                            value=Name(id='message', ctx=Load()),
+                            attr='dict',
+                            ctx=Load()))],
+                      keywords=[
+                        keyword(
+                          arg='indent',
+                          value=Constant(value=4))]),
+                    generators=[
+                      comprehension(
+                        target=Name(id='message', ctx=Store()),
+                        iter=Name(id='messages', ctx=Load()),
+                        is_async=0)])])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='log',
+                  ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Syntax', ctx=Load()),
+                    args=[
+                      Name(id='messages_as_string', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='lexer',
+                        value=Constant(value='markdown')),
+                      keyword(
+                        arg='theme',
+                        value=Constant(value='github-dark')),
+                      keyword(
+                        arg='word_wrap',
+                        value=Constant(value=True))])],
+                keywords=[
+                  keyword(
+                    arg='level',
+                    value=Name(id='level', ctx=Load()))]))],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='visualize_agent_tree',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='agent')]),
+          body=[
+            FunctionDef(
+              name='create_tools_section',
+              args=arguments(
+                args=[
+                  arg(arg='tools_dict')]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='table', ctx=Store())],
+                  value=Call(
+                    func=Name(id='Table', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='show_header',
+                        value=Constant(value=True)),
+                      keyword(
+                        arg='header_style',
+                        value=Constant(value='bold'))])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='table', ctx=Load()),
+                      attr='add_column',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='Name')],
+                    keywords=[
+                      keyword(
+                        arg='style',
+                        value=Constant(value='#1E90FF'))])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='table', ctx=Load()),
+                      attr='add_column',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='Description')])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='table', ctx=Load()),
+                      attr='add_column',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='Arguments')])),
+                For(
+                  target=Tuple(
+                    elts=[
+                      Name(id='name', ctx=Store()),
+                      Name(id='tool', ctx=Store())],
+                    ctx=Store()),
+                  iter=Call(
+                    func=Attribute(
+                      value=Name(id='tools_dict', ctx=Load()),
+                      attr='items',
+                      ctx=Load())),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='args', ctx=Store())],
+                      value=ListComp(
+                        elt=JoinedStr(
+                          values=[
+                            FormattedValue(
+                              value=Name(id='arg_name', ctx=Load()),
+                              conversion=-1),
+                            Constant(value=' (`'),
+                            FormattedValue(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='info', ctx=Load()),
+                                  attr='get',
+                                  ctx=Load()),
+                                args=[
+                                  Constant(value='type'),
+                                  Constant(value='Any')]),
+                              conversion=-1),
+                            Constant(value='`'),
+                            FormattedValue(
+                              value=IfExp(
+                                test=Call(
+                                  func=Attribute(
+                                    value=Name(id='info', ctx=Load()),
+                                    attr='get',
+                                    ctx=Load()),
+                                  args=[
+                                    Constant(value='optional')]),
+                                body=Constant(value=', optional'),
+                                orelse=Constant(value='')),
+                              conversion=-1),
+                            Constant(value='): '),
+                            FormattedValue(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='info', ctx=Load()),
+                                  attr='get',
+                                  ctx=Load()),
+                                args=[
+                                  Constant(value='description'),
+                                  Constant(value='')]),
+                              conversion=-1)]),
+                        generators=[
+                          comprehension(
+                            target=Tuple(
+                              elts=[
+                                Name(id='arg_name', ctx=Store()),
+                                Name(id='info', ctx=Store())],
+                              ctx=Store()),
+                            iter=Call(
+                              func=Attribute(
+                                value=Call(
+                                  func=Name(id='getattr', ctx=Load()),
+                                  args=[
+                                    Name(id='tool', ctx=Load()),
+                                    Constant(value='inputs'),
+                                    Dict()]),
+                                attr='items',
+                                ctx=Load())),
+                            is_async=0)])),
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='table', ctx=Load()),
+                          attr='add_row',
+                          ctx=Load()),
+                        args=[
+                          Name(id='name', ctx=Load()),
+                          Call(
+                            func=Name(id='getattr', ctx=Load()),
+                            args=[
+                              Name(id='tool', ctx=Load()),
+                              Constant(value='description'),
+                              Call(
+                                func=Name(id='str', ctx=Load()),
+                                args=[
+                                  Name(id='tool', ctx=Load())])]),
+                          Call(
+                            func=Attribute(
+                              value=Constant(value='\n'),
+                              attr='join',
+                              ctx=Load()),
+                            args=[
+                              Name(id='args', ctx=Load())])]))]),
+                Return(
+                  value=Call(
+                    func=Name(id='Group', ctx=Load()),
+                    args=[
+                      Constant(value='🛠️ [italic #1E90FF]Tools:[/italic #1E90FF]'),
+                      Name(id='table', ctx=Load())]))]),
+            FunctionDef(
+              name='get_agent_headline',
+              args=arguments(
+                args=[
+                  arg(arg='agent'),
+                  arg(
+                    arg='name',
+                    annotation=BinOp(
+                      left=Name(id='str', ctx=Load()),
+                      op=BitOr(),
+                      right=Constant(value=None)))],
+                defaults=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='name_headline', ctx=Store())],
+                  value=IfExp(
+                    test=Name(id='name', ctx=Load()),
+                    body=JoinedStr(
+                      values=[
+                        FormattedValue(
+                          value=Name(id='name', ctx=Load()),
+                          conversion=-1),
+                        Constant(value=' | ')]),
+                    orelse=Constant(value=''))),
+                Return(
+                  value=JoinedStr(
+                    values=[
+                      Constant(value='[bold '),
+                      FormattedValue(
+                        value=Name(id='YELLOW_HEX', ctx=Load()),
+                        conversion=-1),
+                      Constant(value=']'),
+                      FormattedValue(
+                        value=Name(id='name_headline', ctx=Load()),
+                        conversion=-1),
+                      FormattedValue(
+                        value=Attribute(
+                          value=Attribute(
+                            value=Name(id='agent', ctx=Load()),
+                            attr='__class__',
+                            ctx=Load()),
+                          attr='__name__',
+                          ctx=Load()),
+                        conversion=-1),
+                      Constant(value=' | '),
+                      FormattedValue(
+                        value=Attribute(
+                          value=Attribute(
+                            value=Name(id='agent', ctx=Load()),
+                            attr='model',
+                            ctx=Load()),
+                          attr='model_id',
+                          ctx=Load()),
+                        conversion=-1)]))]),
+            FunctionDef(
+              name='build_agent_tree',
+              args=arguments(
+                args=[
+                  arg(arg='parent_tree'),
+                  arg(arg='agent_obj')]),
+              body=[
+                Expr(
+                  value=Constant(value='Recursively builds the agent tree.')),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='parent_tree', ctx=Load()),
+                      attr='add',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='create_tools_section', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='agent_obj', ctx=Load()),
+                            attr='tools',
+                            ctx=Load())])])),
+                If(
+                  test=Attribute(
+                    value=Name(id='agent_obj', ctx=Load()),
+                    attr='managed_agents',
+                    ctx=Load()),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='agents_branch', ctx=Store())],
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='parent_tree', ctx=Load()),
+                          attr='add',
+                          ctx=Load()),
+                        args=[
+                          Constant(value='🤖 [italic #1E90FF]Managed agents:')])),
+                    For(
+                      target=Tuple(
+                        elts=[
+                          Name(id='name', ctx=Store()),
+                          Name(id='managed_agent', ctx=Store())],
+                        ctx=Store()),
+                      iter=Call(
+                        func=Attribute(
+                          value=Attribute(
+                            value=Name(id='agent_obj', ctx=Load()),
+                            attr='managed_agents',
+                            ctx=Load()),
+                          attr='items',
+                          ctx=Load())),
+                      body=[
+                        Assign(
+                          targets=[
+                            Name(id='agent_tree', ctx=Store())],
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='agents_branch', ctx=Load()),
+                              attr='add',
+                              ctx=Load()),
+                            args=[
+                              Call(
+                                func=Name(id='get_agent_headline', ctx=Load()),
+                                args=[
+                                  Name(id='managed_agent', ctx=Load()),
+                                  Name(id='name', ctx=Load())])])),
+                        If(
+                          test=Compare(
+                            left=Attribute(
+                              value=Attribute(
+                                value=Name(id='managed_agent', ctx=Load()),
+                                attr='__class__',
+                                ctx=Load()),
+                              attr='__name__',
+                              ctx=Load()),
+                            ops=[
+                              Eq()],
+                            comparators=[
+                              Constant(value='CodeAgent')]),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='agent_tree', ctx=Load()),
+                                  attr='add',
+                                  ctx=Load()),
+                                args=[
+                                  JoinedStr(
+                                    values=[
+                                      Constant(value='✅ [italic #1E90FF]Authorized imports:[/italic #1E90FF] '),
+                                      FormattedValue(
+                                        value=Attribute(
+                                          value=Name(id='managed_agent', ctx=Load()),
+                                          attr='additional_authorized_imports',
+                                          ctx=Load()),
+                                        conversion=-1)])]))]),
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='agent_tree', ctx=Load()),
+                              attr='add',
+                              ctx=Load()),
+                            args=[
+                              JoinedStr(
+                                values=[
+                                  Constant(value='📝 [italic #1E90FF]Description:[/italic #1E90FF] '),
+                                  FormattedValue(
+                                    value=Attribute(
+                                      value=Name(id='managed_agent', ctx=Load()),
+                                      attr='description',
+                                      ctx=Load()),
+                                    conversion=-1)])])),
+                        Expr(
+                          value=Call(
+                            func=Name(id='build_agent_tree', ctx=Load()),
+                            args=[
+                              Name(id='agent_tree', ctx=Load()),
+                              Name(id='managed_agent', ctx=Load())]))])])]),
+            Assign(
+              targets=[
+                Name(id='main_tree', ctx=Store())],
+              value=Call(
+                func=Name(id='Tree', ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='get_agent_headline', ctx=Load()),
+                    args=[
+                      Name(id='agent', ctx=Load())])])),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Attribute(
+                    value=Name(id='agent', ctx=Load()),
+                    attr='__class__',
+                    ctx=Load()),
+                  attr='__name__',
+                  ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='CodeAgent')]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='main_tree', ctx=Load()),
+                      attr='add',
+                      ctx=Load()),
+                    args=[
+                      JoinedStr(
+                        values=[
+                          Constant(value='✅ [italic #1E90FF]Authorized imports:[/italic #1E90FF] '),
+                          FormattedValue(
+                            value=Attribute(
+                              value=Name(id='agent', ctx=Load()),
+                              attr='additional_authorized_imports',
+                              ctx=Load()),
+                            conversion=-1)])]))]),
+            Expr(
+              value=Call(
+                func=Name(id='build_agent_tree', ctx=Load()),
+                args=[
+                  Name(id='main_tree', ctx=Load()),
+                  Name(id='agent', ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='console',
+                    ctx=Load()),
+                  attr='print',
+                  ctx=Load()),
+                args=[
+                  Name(id='main_tree', ctx=Load())]))])])])

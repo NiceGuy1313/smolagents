@@ -1,0 +1,1478 @@
+Module(
+  body=[
+    Import(
+      names=[
+        alias(name='logging')]),
+    Import(
+      names=[
+        alias(name='os')]),
+    Import(
+      names=[
+        alias(name='pathlib')]),
+    Import(
+      names=[
+        alias(name='tempfile')]),
+    Import(
+      names=[
+        alias(name='uuid')]),
+    ImportFrom(
+      module='io',
+      names=[
+        alias(name='BytesIO')],
+      level=0),
+    ImportFrom(
+      module='typing',
+      names=[
+        alias(name='Any')],
+      level=0),
+    Import(
+      names=[
+        alias(name='PIL.Image')]),
+    Import(
+      names=[
+        alias(name='requests')]),
+    ImportFrom(
+      module='utils',
+      names=[
+        alias(name='_is_package_available')],
+      level=1),
+    Assign(
+      targets=[
+        Name(id='logger', ctx=Store())],
+      value=Call(
+        func=Attribute(
+          value=Name(id='logging', ctx=Load()),
+          attr='getLogger',
+          ctx=Load()),
+        args=[
+          Name(id='__name__', ctx=Load())])),
+    ClassDef(
+      name='AgentType',
+      body=[
+        Expr(
+          value=Constant(value="\n    Abstract class to be reimplemented to define types that can be returned by agents.\n\n    These objects serve three purposes:\n\n    - They behave as they were the type they're meant to be, e.g., a string for text, a PIL.Image.Image for images\n    - They can be stringified: str(object) in order to return a string defining the object\n    - They should be displayed correctly in ipython notebooks/colab/jupyter\n    ")),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='value')]),
+          body=[
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_value',
+                  ctx=Store())],
+              value=Name(id='value', ctx=Load()))]),
+        FunctionDef(
+          name='__str__',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='to_string',
+                  ctx=Load())))]),
+        FunctionDef(
+          name='to_raw',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='logger', ctx=Load()),
+                  attr='error',
+                  ctx=Load()),
+                args=[
+                  Constant(value='This is a raw AgentType of unknown type. Display in notebooks and string conversion will be unreliable')])),
+            Return(
+              value=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='_value',
+                ctx=Load()))]),
+        FunctionDef(
+          name='to_string',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='logger', ctx=Load()),
+                  attr='error',
+                  ctx=Load()),
+                args=[
+                  Constant(value='This is a raw AgentType of unknown type. Display in notebooks and string conversion will be unreliable')])),
+            Return(
+              value=Call(
+                func=Name(id='str', ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_value',
+                    ctx=Load())]))],
+          returns=Name(id='str', ctx=Load()))]),
+    ClassDef(
+      name='AgentText',
+      bases=[
+        Name(id='AgentType', ctx=Load()),
+        Name(id='str', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='\n    Text type returned by the agent. Behaves as a string.\n    ')),
+        FunctionDef(
+          name='to_raw',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='_value',
+                ctx=Load()))]),
+        FunctionDef(
+          name='to_string',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Call(
+                func=Name(id='str', ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_value',
+                    ctx=Load())]))])]),
+    ClassDef(
+      name='AgentImage',
+      bases=[
+        Name(id='AgentType', ctx=Load()),
+        Attribute(
+          value=Attribute(
+            value=Name(id='PIL', ctx=Load()),
+            attr='Image',
+            ctx=Load()),
+          attr='Image',
+          ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='\n    Image type returned by the agent. Behaves as a PIL.Image.Image.\n    ')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='value')]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='AgentType', ctx=Load()),
+                  attr='__init__',
+                  ctx=Load()),
+                args=[
+                  Name(id='self', ctx=Load()),
+                  Name(id='value', ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Attribute(
+                      value=Name(id='PIL', ctx=Load()),
+                      attr='Image',
+                      ctx=Load()),
+                    attr='Image',
+                    ctx=Load()),
+                  attr='__init__',
+                  ctx=Load()),
+                args=[
+                  Name(id='self', ctx=Load())])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_path',
+                  ctx=Store())],
+              value=Constant(value=None)),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_raw',
+                  ctx=Store())],
+              value=Constant(value=None)),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_tensor',
+                  ctx=Store())],
+              value=Constant(value=None)),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='value', ctx=Load()),
+                  Name(id='AgentImage', ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Tuple(
+                      elts=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_raw',
+                          ctx=Store()),
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_path',
+                          ctx=Store()),
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_tensor',
+                          ctx=Store())],
+                      ctx=Store())],
+                  value=Tuple(
+                    elts=[
+                      Attribute(
+                        value=Name(id='value', ctx=Load()),
+                        attr='_raw',
+                        ctx=Load()),
+                      Attribute(
+                        value=Name(id='value', ctx=Load()),
+                        attr='_path',
+                        ctx=Load()),
+                      Attribute(
+                        value=Name(id='value', ctx=Load()),
+                        attr='_tensor',
+                        ctx=Load())],
+                    ctx=Load()))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='value', ctx=Load()),
+                      Attribute(
+                        value=Attribute(
+                          value=Name(id='PIL', ctx=Load()),
+                          attr='Image',
+                          ctx=Load()),
+                        attr='Image',
+                        ctx=Load())]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_raw',
+                          ctx=Store())],
+                      value=Name(id='value', ctx=Load()))],
+                  orelse=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Name(id='value', ctx=Load()),
+                          Name(id='bytes', ctx=Load())]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='_raw',
+                              ctx=Store())],
+                          value=Call(
+                            func=Attribute(
+                              value=Attribute(
+                                value=Name(id='PIL', ctx=Load()),
+                                attr='Image',
+                                ctx=Load()),
+                              attr='open',
+                              ctx=Load()),
+                            args=[
+                              Call(
+                                func=Name(id='BytesIO', ctx=Load()),
+                                args=[
+                                  Name(id='value', ctx=Load())])]))],
+                      orelse=[
+                        If(
+                          test=Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Name(id='value', ctx=Load()),
+                              Tuple(
+                                elts=[
+                                  Name(id='str', ctx=Load()),
+                                  Attribute(
+                                    value=Name(id='pathlib', ctx=Load()),
+                                    attr='Path',
+                                    ctx=Load())],
+                                ctx=Load())]),
+                          body=[
+                            Assign(
+                              targets=[
+                                Attribute(
+                                  value=Name(id='self', ctx=Load()),
+                                  attr='_path',
+                                  ctx=Store())],
+                              value=Name(id='value', ctx=Load()))],
+                          orelse=[
+                            Try(
+                              body=[
+                                Import(
+                                  names=[
+                                    alias(name='torch')]),
+                                If(
+                                  test=Call(
+                                    func=Name(id='isinstance', ctx=Load()),
+                                    args=[
+                                      Name(id='value', ctx=Load()),
+                                      Attribute(
+                                        value=Name(id='torch', ctx=Load()),
+                                        attr='Tensor',
+                                        ctx=Load())]),
+                                  body=[
+                                    Assign(
+                                      targets=[
+                                        Attribute(
+                                          value=Name(id='self', ctx=Load()),
+                                          attr='_tensor',
+                                          ctx=Store())],
+                                      value=Name(id='value', ctx=Load()))]),
+                                Import(
+                                  names=[
+                                    alias(name='numpy', asname='np')]),
+                                If(
+                                  test=Call(
+                                    func=Name(id='isinstance', ctx=Load()),
+                                    args=[
+                                      Name(id='value', ctx=Load()),
+                                      Attribute(
+                                        value=Name(id='np', ctx=Load()),
+                                        attr='ndarray',
+                                        ctx=Load())]),
+                                  body=[
+                                    Assign(
+                                      targets=[
+                                        Attribute(
+                                          value=Name(id='self', ctx=Load()),
+                                          attr='_tensor',
+                                          ctx=Store())],
+                                      value=Call(
+                                        func=Attribute(
+                                          value=Name(id='torch', ctx=Load()),
+                                          attr='from_numpy',
+                                          ctx=Load()),
+                                        args=[
+                                          Name(id='value', ctx=Load())]))])],
+                              handlers=[
+                                ExceptHandler(
+                                  type=Name(id='ModuleNotFoundError', ctx=Load()),
+                                  body=[
+                                    Pass()])])])])])]),
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Compare(
+                    left=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_path',
+                      ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Constant(value=None)]),
+                  Compare(
+                    left=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_raw',
+                      ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Constant(value=None)]),
+                  Compare(
+                    left=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_tensor',
+                      ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Constant(value=None)])]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='TypeError', ctx=Load()),
+                    args=[
+                      JoinedStr(
+                        values=[
+                          Constant(value='Unsupported type for '),
+                          FormattedValue(
+                            value=Attribute(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='__class__',
+                                ctx=Load()),
+                              attr='__name__',
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=': '),
+                          FormattedValue(
+                            value=Call(
+                              func=Name(id='type', ctx=Load()),
+                              args=[
+                                Name(id='value', ctx=Load())]),
+                            conversion=-1)])]))])]),
+        FunctionDef(
+          name='_ipython_display_',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='include'),
+              arg(arg='exclude')],
+            defaults=[
+              Constant(value=None),
+              Constant(value=None)]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Displays correctly this type in an ipython notebook (ipython, colab, jupyter, ...)\n        ')),
+            ImportFrom(
+              module='IPython.display',
+              names=[
+                alias(name='Image'),
+                alias(name='display')],
+              level=0),
+            Expr(
+              value=Call(
+                func=Name(id='display', ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Image', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='to_string',
+                          ctx=Load()))])]))]),
+        FunctionDef(
+          name='to_raw',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Returns the "raw" version of that object. In the case of an AgentImage, it is a PIL.Image.Image.\n        ')),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_raw',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_raw',
+                    ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_path',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_raw',
+                      ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='PIL', ctx=Load()),
+                        attr='Image',
+                        ctx=Load()),
+                      attr='open',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_path',
+                        ctx=Load())])),
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_raw',
+                    ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_tensor',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Import(
+                  names=[
+                    alias(name='numpy', asname='np')]),
+                Assign(
+                  targets=[
+                    Name(id='array', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Attribute(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='_tensor',
+                                ctx=Load()),
+                              attr='cpu',
+                              ctx=Load())),
+                          attr='detach',
+                          ctx=Load())),
+                      attr='numpy',
+                      ctx=Load()))),
+                Return(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='PIL', ctx=Load()),
+                        attr='Image',
+                        ctx=Load()),
+                      attr='fromarray',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Attribute(
+                          value=BinOp(
+                            left=Constant(value=255),
+                            op=Sub(),
+                            right=BinOp(
+                              left=Name(id='array', ctx=Load()),
+                              op=Mult(),
+                              right=Constant(value=255))),
+                          attr='astype',
+                          ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='np', ctx=Load()),
+                            attr='uint8',
+                            ctx=Load())])]))])]),
+        FunctionDef(
+          name='to_string',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Returns the stringified version of that object. In the case of an AgentImage, it is a path to the serialized\n        version of the image.\n        ')),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_path',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_path',
+                    ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_raw',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='directory', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='tempfile', ctx=Load()),
+                      attr='mkdtemp',
+                      ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_path',
+                      ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='os', ctx=Load()),
+                        attr='path',
+                        ctx=Load()),
+                      attr='join',
+                      ctx=Load()),
+                    args=[
+                      Name(id='directory', ctx=Load()),
+                      BinOp(
+                        left=Call(
+                          func=Name(id='str', ctx=Load()),
+                          args=[
+                            Call(
+                              func=Attribute(
+                                value=Name(id='uuid', ctx=Load()),
+                                attr='uuid4',
+                                ctx=Load()))]),
+                        op=Add(),
+                        right=Constant(value='.png'))])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_raw',
+                        ctx=Load()),
+                      attr='save',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_path',
+                        ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='format',
+                        value=Constant(value='png'))])),
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_path',
+                    ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_tensor',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Import(
+                  names=[
+                    alias(name='numpy', asname='np')]),
+                Assign(
+                  targets=[
+                    Name(id='array', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Attribute(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='_tensor',
+                                ctx=Load()),
+                              attr='cpu',
+                              ctx=Load())),
+                          attr='detach',
+                          ctx=Load())),
+                      attr='numpy',
+                      ctx=Load()))),
+                Assign(
+                  targets=[
+                    Name(id='img', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='PIL', ctx=Load()),
+                        attr='Image',
+                        ctx=Load()),
+                      attr='fromarray',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Attribute(
+                          value=BinOp(
+                            left=Constant(value=255),
+                            op=Sub(),
+                            right=BinOp(
+                              left=Name(id='array', ctx=Load()),
+                              op=Mult(),
+                              right=Constant(value=255))),
+                          attr='astype',
+                          ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='np', ctx=Load()),
+                            attr='uint8',
+                            ctx=Load())])])),
+                Assign(
+                  targets=[
+                    Name(id='directory', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='tempfile', ctx=Load()),
+                      attr='mkdtemp',
+                      ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_path',
+                      ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='os', ctx=Load()),
+                        attr='path',
+                        ctx=Load()),
+                      attr='join',
+                      ctx=Load()),
+                    args=[
+                      Name(id='directory', ctx=Load()),
+                      BinOp(
+                        left=Call(
+                          func=Name(id='str', ctx=Load()),
+                          args=[
+                            Call(
+                              func=Attribute(
+                                value=Name(id='uuid', ctx=Load()),
+                                attr='uuid4',
+                                ctx=Load()))]),
+                        op=Add(),
+                        right=Constant(value='.png'))])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='img', ctx=Load()),
+                      attr='save',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_path',
+                        ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='format',
+                        value=Constant(value='png'))])),
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_path',
+                    ctx=Load()))])]),
+        FunctionDef(
+          name='save',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='output_bytes'),
+              arg(
+                arg='format',
+                annotation=Name(id='str', ctx=Load()))],
+            kwarg=arg(arg='params'),
+            defaults=[
+              Constant(value=None)]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Saves the image to a file.\n        Args:\n            output_bytes (bytes): The output bytes to save the image to.\n            format (str): The format to use for the output image. The format is the same as in PIL.Image.save.\n            **params: Additional parameters to pass to PIL.Image.save.\n        ')),
+            Assign(
+              targets=[
+                Name(id='img', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='to_raw',
+                  ctx=Load()))),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='img', ctx=Load()),
+                  attr='save',
+                  ctx=Load()),
+                args=[
+                  Name(id='output_bytes', ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='format',
+                    value=Name(id='format', ctx=Load())),
+                  keyword(
+                    value=Name(id='params', ctx=Load()))]))])]),
+    ClassDef(
+      name='AgentAudio',
+      bases=[
+        Name(id='AgentType', ctx=Load()),
+        Name(id='str', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='\n    Audio type returned by the agent.\n    ')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='value'),
+              arg(arg='samplerate')],
+            defaults=[
+              Constant(value=16000)]),
+          body=[
+            If(
+              test=BoolOp(
+                op=Or(),
+                values=[
+                  UnaryOp(
+                    op=Not(),
+                    operand=Call(
+                      func=Name(id='_is_package_available', ctx=Load()),
+                      args=[
+                        Constant(value='soundfile')])),
+                  UnaryOp(
+                    op=Not(),
+                    operand=Call(
+                      func=Name(id='_is_package_available', ctx=Load()),
+                      args=[
+                        Constant(value='torch')]))]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ModuleNotFoundError', ctx=Load()),
+                    args=[
+                      Constant(value="Please install 'audio' extra to use AgentAudio: `pip install 'smolagents[audio]'`")]))]),
+            Import(
+              names=[
+                alias(name='numpy', asname='np')]),
+            Import(
+              names=[
+                alias(name='torch')]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()),
+                args=[
+                  Name(id='value', ctx=Load())])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_path',
+                  ctx=Store())],
+              value=Constant(value=None)),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_tensor',
+                  ctx=Store())],
+              value=Constant(value=None)),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='samplerate',
+                  ctx=Store())],
+              value=Name(id='samplerate', ctx=Load())),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='value', ctx=Load()),
+                  Tuple(
+                    elts=[
+                      Name(id='str', ctx=Load()),
+                      Attribute(
+                        value=Name(id='pathlib', ctx=Load()),
+                        attr='Path',
+                        ctx=Load())],
+                    ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_path',
+                      ctx=Store())],
+                  value=Name(id='value', ctx=Load()))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='value', ctx=Load()),
+                      Attribute(
+                        value=Name(id='torch', ctx=Load()),
+                        attr='Tensor',
+                        ctx=Load())]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_tensor',
+                          ctx=Store())],
+                      value=Name(id='value', ctx=Load()))],
+                  orelse=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Name(id='value', ctx=Load()),
+                          Name(id='tuple', ctx=Load())]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='samplerate',
+                              ctx=Store())],
+                          value=Subscript(
+                            value=Name(id='value', ctx=Load()),
+                            slice=Constant(value=0),
+                            ctx=Load())),
+                        If(
+                          test=Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Subscript(
+                                value=Name(id='value', ctx=Load()),
+                                slice=Constant(value=1),
+                                ctx=Load()),
+                              Attribute(
+                                value=Name(id='np', ctx=Load()),
+                                attr='ndarray',
+                                ctx=Load())]),
+                          body=[
+                            Assign(
+                              targets=[
+                                Attribute(
+                                  value=Name(id='self', ctx=Load()),
+                                  attr='_tensor',
+                                  ctx=Store())],
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='torch', ctx=Load()),
+                                  attr='from_numpy',
+                                  ctx=Load()),
+                                args=[
+                                  Subscript(
+                                    value=Name(id='value', ctx=Load()),
+                                    slice=Constant(value=1),
+                                    ctx=Load())]))],
+                          orelse=[
+                            Assign(
+                              targets=[
+                                Attribute(
+                                  value=Name(id='self', ctx=Load()),
+                                  attr='_tensor',
+                                  ctx=Store())],
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='torch', ctx=Load()),
+                                  attr='tensor',
+                                  ctx=Load()),
+                                args=[
+                                  Subscript(
+                                    value=Name(id='value', ctx=Load()),
+                                    slice=Constant(value=1),
+                                    ctx=Load())]))])],
+                      orelse=[
+                        Raise(
+                          exc=Call(
+                            func=Name(id='ValueError', ctx=Load()),
+                            args=[
+                              JoinedStr(
+                                values=[
+                                  Constant(value='Unsupported audio type: '),
+                                  FormattedValue(
+                                    value=Call(
+                                      func=Name(id='type', ctx=Load()),
+                                      args=[
+                                        Name(id='value', ctx=Load())]),
+                                    conversion=-1)])]))])])])]),
+        FunctionDef(
+          name='_ipython_display_',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='include'),
+              arg(arg='exclude')],
+            defaults=[
+              Constant(value=None),
+              Constant(value=None)]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Displays correctly this type in an ipython notebook (ipython, colab, jupyter, ...)\n        ')),
+            ImportFrom(
+              module='IPython.display',
+              names=[
+                alias(name='Audio'),
+                alias(name='display')],
+              level=0),
+            Expr(
+              value=Call(
+                func=Name(id='display', ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='Audio', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='to_string',
+                          ctx=Load()))],
+                    keywords=[
+                      keyword(
+                        arg='rate',
+                        value=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='samplerate',
+                          ctx=Load()))])]))]),
+        FunctionDef(
+          name='to_raw',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Returns the "raw" version of that object. It is a `torch.Tensor` object.\n        ')),
+            Import(
+              names=[
+                alias(name='soundfile', asname='sf')]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_tensor',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_tensor',
+                    ctx=Load()))]),
+            Import(
+              names=[
+                alias(name='torch')]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_path',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                If(
+                  test=Compare(
+                    left=Constant(value='://'),
+                    ops=[
+                      In()],
+                    comparators=[
+                      Call(
+                        func=Name(id='str', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='_path',
+                            ctx=Load())])]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='response', ctx=Store())],
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='requests', ctx=Load()),
+                          attr='get',
+                          ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='_path',
+                            ctx=Load())])),
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='response', ctx=Load()),
+                          attr='raise_for_status',
+                          ctx=Load()))),
+                    Assign(
+                      targets=[
+                        Tuple(
+                          elts=[
+                            Name(id='tensor', ctx=Store()),
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='samplerate',
+                              ctx=Store())],
+                          ctx=Store())],
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='sf', ctx=Load()),
+                          attr='read',
+                          ctx=Load()),
+                        args=[
+                          Call(
+                            func=Name(id='BytesIO', ctx=Load()),
+                            args=[
+                              Attribute(
+                                value=Name(id='response', ctx=Load()),
+                                attr='content',
+                                ctx=Load())])]))],
+                  orelse=[
+                    Assign(
+                      targets=[
+                        Tuple(
+                          elts=[
+                            Name(id='tensor', ctx=Store()),
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='samplerate',
+                              ctx=Store())],
+                          ctx=Store())],
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='sf', ctx=Load()),
+                          attr='read',
+                          ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='_path',
+                            ctx=Load())]))]),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_tensor',
+                      ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='torch', ctx=Load()),
+                      attr='tensor',
+                      ctx=Load()),
+                    args=[
+                      Name(id='tensor', ctx=Load())])),
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_tensor',
+                    ctx=Load()))])]),
+        FunctionDef(
+          name='to_string',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Returns the stringified version of that object. In the case of an AgentAudio, it is a path to the serialized\n        version of the audio.\n        ')),
+            Import(
+              names=[
+                alias(name='soundfile', asname='sf')]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_path',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_path',
+                    ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_tensor',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='directory', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='tempfile', ctx=Load()),
+                      attr='mkdtemp',
+                      ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_path',
+                      ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='os', ctx=Load()),
+                        attr='path',
+                        ctx=Load()),
+                      attr='join',
+                      ctx=Load()),
+                    args=[
+                      Name(id='directory', ctx=Load()),
+                      BinOp(
+                        left=Call(
+                          func=Name(id='str', ctx=Load()),
+                          args=[
+                            Call(
+                              func=Attribute(
+                                value=Name(id='uuid', ctx=Load()),
+                                attr='uuid4',
+                                ctx=Load()))]),
+                        op=Add(),
+                        right=Constant(value='.wav'))])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='sf', ctx=Load()),
+                      attr='write',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_path',
+                        ctx=Load()),
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_tensor',
+                        ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='samplerate',
+                        value=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='samplerate',
+                          ctx=Load()))])),
+                Return(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_path',
+                    ctx=Load()))])])]),
+    Assign(
+      targets=[
+        Name(id='_AGENT_TYPE_MAPPING', ctx=Store())],
+      value=Dict(
+        keys=[
+          Constant(value='string'),
+          Constant(value='image'),
+          Constant(value='audio')],
+        values=[
+          Name(id='AgentText', ctx=Load()),
+          Name(id='AgentImage', ctx=Load()),
+          Name(id='AgentAudio', ctx=Load())])),
+    FunctionDef(
+      name='handle_agent_input_types',
+      args=arguments(
+        vararg=arg(arg='args'),
+        kwarg=arg(arg='kwargs')),
+      body=[
+        Assign(
+          targets=[
+            Name(id='args', ctx=Store())],
+          value=ListComp(
+            elt=IfExp(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='arg', ctx=Load()),
+                  Name(id='AgentType', ctx=Load())]),
+              body=Call(
+                func=Attribute(
+                  value=Name(id='arg', ctx=Load()),
+                  attr='to_raw',
+                  ctx=Load())),
+              orelse=Name(id='arg', ctx=Load())),
+            generators=[
+              comprehension(
+                target=Name(id='arg', ctx=Store()),
+                iter=Name(id='args', ctx=Load()),
+                is_async=0)])),
+        Assign(
+          targets=[
+            Name(id='kwargs', ctx=Store())],
+          value=DictComp(
+            key=Name(id='k', ctx=Load()),
+            value=IfExp(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='v', ctx=Load()),
+                  Name(id='AgentType', ctx=Load())]),
+              body=Call(
+                func=Attribute(
+                  value=Name(id='v', ctx=Load()),
+                  attr='to_raw',
+                  ctx=Load())),
+              orelse=Name(id='v', ctx=Load())),
+            generators=[
+              comprehension(
+                target=Tuple(
+                  elts=[
+                    Name(id='k', ctx=Store()),
+                    Name(id='v', ctx=Store())],
+                  ctx=Store()),
+                iter=Call(
+                  func=Attribute(
+                    value=Name(id='kwargs', ctx=Load()),
+                    attr='items',
+                    ctx=Load())),
+                is_async=0)])),
+        Return(
+          value=Tuple(
+            elts=[
+              Name(id='args', ctx=Load()),
+              Name(id='kwargs', ctx=Load())],
+            ctx=Load()))]),
+    FunctionDef(
+      name='handle_agent_output_types',
+      args=arguments(
+        args=[
+          arg(
+            arg='output',
+            annotation=Name(id='Any', ctx=Load())),
+          arg(
+            arg='output_type',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None)))],
+        defaults=[
+          Constant(value=None)]),
+      body=[
+        If(
+          test=Compare(
+            left=Name(id='output_type', ctx=Load()),
+            ops=[
+              In()],
+            comparators=[
+              Name(id='_AGENT_TYPE_MAPPING', ctx=Load())]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='decoded_outputs', ctx=Store())],
+              value=Call(
+                func=Subscript(
+                  value=Name(id='_AGENT_TYPE_MAPPING', ctx=Load()),
+                  slice=Name(id='output_type', ctx=Load()),
+                  ctx=Load()),
+                args=[
+                  Name(id='output', ctx=Load())])),
+            Return(
+              value=Name(id='decoded_outputs', ctx=Load()))]),
+        If(
+          test=Call(
+            func=Name(id='isinstance', ctx=Load()),
+            args=[
+              Name(id='output', ctx=Load()),
+              Name(id='str', ctx=Load())]),
+          body=[
+            Return(
+              value=Call(
+                func=Name(id='AgentText', ctx=Load()),
+                args=[
+                  Name(id='output', ctx=Load())]))]),
+        If(
+          test=Call(
+            func=Name(id='isinstance', ctx=Load()),
+            args=[
+              Name(id='output', ctx=Load()),
+              Attribute(
+                value=Attribute(
+                  value=Name(id='PIL', ctx=Load()),
+                  attr='Image',
+                  ctx=Load()),
+                attr='Image',
+                ctx=Load())]),
+          body=[
+            Return(
+              value=Call(
+                func=Name(id='AgentImage', ctx=Load()),
+                args=[
+                  Name(id='output', ctx=Load())]))]),
+        Try(
+          body=[
+            Import(
+              names=[
+                alias(name='torch')]),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='output', ctx=Load()),
+                  Attribute(
+                    value=Name(id='torch', ctx=Load()),
+                    attr='Tensor',
+                    ctx=Load())]),
+              body=[
+                Return(
+                  value=Call(
+                    func=Name(id='AgentAudio', ctx=Load()),
+                    args=[
+                      Name(id='output', ctx=Load())]))])],
+          handlers=[
+            ExceptHandler(
+              type=Name(id='ModuleNotFoundError', ctx=Load()),
+              body=[
+                Pass()])]),
+        Return(
+          value=Name(id='output', ctx=Load()))],
+      returns=Name(id='Any', ctx=Load())),
+    Assign(
+      targets=[
+        Name(id='__all__', ctx=Store())],
+      value=List(
+        elts=[
+          Constant(value='AgentType'),
+          Constant(value='AgentImage'),
+          Constant(value='AgentText'),
+          Constant(value='AgentAudio')],
+        ctx=Load()))])

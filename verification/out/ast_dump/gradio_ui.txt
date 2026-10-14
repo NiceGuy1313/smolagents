@@ -1,0 +1,2271 @@
+Module(
+  body=[
+    Import(
+      names=[
+        alias(name='os')]),
+    Import(
+      names=[
+        alias(name='re')]),
+    Import(
+      names=[
+        alias(name='shutil')]),
+    ImportFrom(
+      module='pathlib',
+      names=[
+        alias(name='Path')],
+      level=0),
+    ImportFrom(
+      module='typing',
+      names=[
+        alias(name='Generator')],
+      level=0),
+    ImportFrom(
+      module='smolagents.agent_types',
+      names=[
+        alias(name='AgentAudio'),
+        alias(name='AgentImage'),
+        alias(name='AgentText')],
+      level=0),
+    ImportFrom(
+      module='smolagents.agents',
+      names=[
+        alias(name='MultiStepAgent'),
+        alias(name='PlanningStep')],
+      level=0),
+    ImportFrom(
+      module='smolagents.memory',
+      names=[
+        alias(name='ActionStep'),
+        alias(name='FinalAnswerStep')],
+      level=0),
+    ImportFrom(
+      module='smolagents.models',
+      names=[
+        alias(name='ChatMessageStreamDelta'),
+        alias(name='MessageRole'),
+        alias(name='agglomerate_stream_deltas')],
+      level=0),
+    ImportFrom(
+      module='smolagents.utils',
+      names=[
+        alias(name='_is_package_available')],
+      level=0),
+    FunctionDef(
+      name='get_step_footnote_content',
+      args=arguments(
+        args=[
+          arg(
+            arg='step_log',
+            annotation=BinOp(
+              left=Name(id='ActionStep', ctx=Load()),
+              op=BitOr(),
+              right=Name(id='PlanningStep', ctx=Load()))),
+          arg(
+            arg='step_name',
+            annotation=Name(id='str', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='Get a footnote string for a step log with duration and token information')),
+        Assign(
+          targets=[
+            Name(id='step_footnote', ctx=Store())],
+          value=JoinedStr(
+            values=[
+              Constant(value='**'),
+              FormattedValue(
+                value=Name(id='step_name', ctx=Load()),
+                conversion=-1),
+              Constant(value='**')])),
+        If(
+          test=Compare(
+            left=Attribute(
+              value=Name(id='step_log', ctx=Load()),
+              attr='token_usage',
+              ctx=Load()),
+            ops=[
+              IsNot()],
+            comparators=[
+              Constant(value=None)]),
+          body=[
+            AugAssign(
+              target=Name(id='step_footnote', ctx=Store()),
+              op=Add(),
+              value=JoinedStr(
+                values=[
+                  Constant(value=' | Input tokens: '),
+                  FormattedValue(
+                    value=Attribute(
+                      value=Attribute(
+                        value=Name(id='step_log', ctx=Load()),
+                        attr='token_usage',
+                        ctx=Load()),
+                      attr='input_tokens',
+                      ctx=Load()),
+                    conversion=-1,
+                    format_spec=JoinedStr(
+                      values=[
+                        Constant(value=',')])),
+                  Constant(value=' | Output tokens: '),
+                  FormattedValue(
+                    value=Attribute(
+                      value=Attribute(
+                        value=Name(id='step_log', ctx=Load()),
+                        attr='token_usage',
+                        ctx=Load()),
+                      attr='output_tokens',
+                      ctx=Load()),
+                    conversion=-1,
+                    format_spec=JoinedStr(
+                      values=[
+                        Constant(value=',')]))]))]),
+        AugAssign(
+          target=Name(id='step_footnote', ctx=Store()),
+          op=Add(),
+          value=IfExp(
+            test=Attribute(
+              value=Attribute(
+                value=Name(id='step_log', ctx=Load()),
+                attr='timing',
+                ctx=Load()),
+              attr='duration',
+              ctx=Load()),
+            body=JoinedStr(
+              values=[
+                Constant(value=' | Duration: '),
+                FormattedValue(
+                  value=Call(
+                    func=Name(id='round', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='float', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Attribute(
+                              value=Name(id='step_log', ctx=Load()),
+                              attr='timing',
+                              ctx=Load()),
+                            attr='duration',
+                            ctx=Load())]),
+                      Constant(value=2)]),
+                  conversion=-1),
+                Constant(value='s')]),
+            orelse=Constant(value=''))),
+        Assign(
+          targets=[
+            Name(id='step_footnote_content', ctx=Store())],
+          value=JoinedStr(
+            values=[
+              Constant(value='<span style="color: #bbbbc2; font-size: 12px;">'),
+              FormattedValue(
+                value=Name(id='step_footnote', ctx=Load()),
+                conversion=-1),
+              Constant(value='</span> ')])),
+        Return(
+          value=Name(id='step_footnote_content', ctx=Load()))],
+      returns=Name(id='str', ctx=Load())),
+    FunctionDef(
+      name='_clean_model_output',
+      args=arguments(
+        args=[
+          arg(
+            arg='model_output',
+            annotation=Name(id='str', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Clean up model output by removing trailing tags and extra backticks.\n\n    Args:\n        model_output (`str`): Raw model output.\n\n    Returns:\n        `str`: Cleaned model output.\n    ')),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Name(id='model_output', ctx=Load())),
+          body=[
+            Return(
+              value=Constant(value=''))]),
+        Assign(
+          targets=[
+            Name(id='model_output', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='model_output', ctx=Load()),
+              attr='strip',
+              ctx=Load()))),
+        Assign(
+          targets=[
+            Name(id='model_output', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='sub',
+              ctx=Load()),
+            args=[
+              Constant(value='```\\s*<end_code>'),
+              Constant(value='```'),
+              Name(id='model_output', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='model_output', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='sub',
+              ctx=Load()),
+            args=[
+              Constant(value='<end_code>\\s*```'),
+              Constant(value='```'),
+              Name(id='model_output', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='model_output', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='sub',
+              ctx=Load()),
+            args=[
+              Constant(value='```\\s*\\n\\s*<end_code>'),
+              Constant(value='```'),
+              Name(id='model_output', ctx=Load())])),
+        Return(
+          value=Call(
+            func=Attribute(
+              value=Name(id='model_output', ctx=Load()),
+              attr='strip',
+              ctx=Load())))],
+      returns=Name(id='str', ctx=Load())),
+    FunctionDef(
+      name='_format_code_content',
+      args=arguments(
+        args=[
+          arg(
+            arg='content',
+            annotation=Name(id='str', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value="\n    Format code content as Python code block if it's not already formatted.\n\n    Args:\n        content (`str`): Code content to format.\n\n    Returns:\n        `str`: Code content formatted as a Python code block.\n    ")),
+        Assign(
+          targets=[
+            Name(id='content', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='content', ctx=Load()),
+              attr='strip',
+              ctx=Load()))),
+        Assign(
+          targets=[
+            Name(id='content', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='sub',
+              ctx=Load()),
+            args=[
+              Constant(value='```.*?\\n'),
+              Constant(value=''),
+              Name(id='content', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='content', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='sub',
+              ctx=Load()),
+            args=[
+              Constant(value='\\s*<end_code>\\s*'),
+              Constant(value=''),
+              Name(id='content', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='content', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='content', ctx=Load()),
+              attr='strip',
+              ctx=Load()))),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Call(
+              func=Attribute(
+                value=Name(id='content', ctx=Load()),
+                attr='startswith',
+                ctx=Load()),
+              args=[
+                Constant(value='```python')])),
+          body=[
+            Assign(
+              targets=[
+                Name(id='content', ctx=Store())],
+              value=JoinedStr(
+                values=[
+                  Constant(value='```python\n'),
+                  FormattedValue(
+                    value=Name(id='content', ctx=Load()),
+                    conversion=-1),
+                  Constant(value='\n```')]))]),
+        Return(
+          value=Name(id='content', ctx=Load()))],
+      returns=Name(id='str', ctx=Load())),
+    FunctionDef(
+      name='_process_action_step',
+      args=arguments(
+        args=[
+          arg(
+            arg='step_log',
+            annotation=Name(id='ActionStep', ctx=Load())),
+          arg(
+            arg='skip_model_outputs',
+            annotation=Name(id='bool', ctx=Load()))],
+        defaults=[
+          Constant(value=False)]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Process an [`ActionStep`] and yield appropriate Gradio ChatMessage objects.\n\n    Args:\n        step_log ([`ActionStep`]): ActionStep to process.\n        skip_model_outputs (`bool`): Whether to skip model outputs.\n\n    Yields:\n        `gradio.ChatMessage`: Gradio ChatMessages representing the action step.\n    ')),
+        Import(
+          names=[
+            alias(name='gradio', asname='gr')]),
+        Assign(
+          targets=[
+            Name(id='step_number', ctx=Store())],
+          value=JoinedStr(
+            values=[
+              Constant(value='Step '),
+              FormattedValue(
+                value=Attribute(
+                  value=Name(id='step_log', ctx=Load()),
+                  attr='step_number',
+                  ctx=Load()),
+                conversion=-1)])),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Name(id='skip_model_outputs', ctx=Load())),
+          body=[
+            Expr(
+              value=Yield(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='gr', ctx=Load()),
+                    attr='ChatMessage',
+                    ctx=Load()),
+                  keywords=[
+                    keyword(
+                      arg='role',
+                      value=Attribute(
+                        value=Name(id='MessageRole', ctx=Load()),
+                        attr='ASSISTANT',
+                        ctx=Load())),
+                    keyword(
+                      arg='content',
+                      value=JoinedStr(
+                        values=[
+                          Constant(value='**'),
+                          FormattedValue(
+                            value=Name(id='step_number', ctx=Load()),
+                            conversion=-1),
+                          Constant(value='**')])),
+                    keyword(
+                      arg='metadata',
+                      value=Dict(
+                        keys=[
+                          Constant(value='status')],
+                        values=[
+                          Constant(value='done')]))])))]),
+        If(
+          test=BoolOp(
+            op=And(),
+            values=[
+              UnaryOp(
+                op=Not(),
+                operand=Name(id='skip_model_outputs', ctx=Load())),
+              Call(
+                func=Name(id='getattr', ctx=Load()),
+                args=[
+                  Name(id='step_log', ctx=Load()),
+                  Constant(value='model_output'),
+                  Constant(value='')])]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='model_output', ctx=Store())],
+              value=Call(
+                func=Name(id='_clean_model_output', ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='step_log', ctx=Load()),
+                    attr='model_output',
+                    ctx=Load())])),
+            Expr(
+              value=Yield(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='gr', ctx=Load()),
+                    attr='ChatMessage',
+                    ctx=Load()),
+                  keywords=[
+                    keyword(
+                      arg='role',
+                      value=Attribute(
+                        value=Name(id='MessageRole', ctx=Load()),
+                        attr='ASSISTANT',
+                        ctx=Load())),
+                    keyword(
+                      arg='content',
+                      value=Name(id='model_output', ctx=Load())),
+                    keyword(
+                      arg='metadata',
+                      value=Dict(
+                        keys=[
+                          Constant(value='status')],
+                        values=[
+                          Constant(value='done')]))])))]),
+        If(
+          test=Call(
+            func=Name(id='getattr', ctx=Load()),
+            args=[
+              Name(id='step_log', ctx=Load()),
+              Constant(value='tool_calls'),
+              List(ctx=Load())]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='first_tool_call', ctx=Store())],
+              value=Subscript(
+                value=Attribute(
+                  value=Name(id='step_log', ctx=Load()),
+                  attr='tool_calls',
+                  ctx=Load()),
+                slice=Constant(value=0),
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='used_code', ctx=Store())],
+              value=Compare(
+                left=Attribute(
+                  value=Name(id='first_tool_call', ctx=Load()),
+                  attr='name',
+                  ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='python_interpreter')])),
+            Assign(
+              targets=[
+                Name(id='args', ctx=Store())],
+              value=Attribute(
+                value=Name(id='first_tool_call', ctx=Load()),
+                attr='arguments',
+                ctx=Load())),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='args', ctx=Load()),
+                  Name(id='dict', ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='content', ctx=Store())],
+                  value=Call(
+                    func=Name(id='str', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Attribute(
+                          value=Name(id='args', ctx=Load()),
+                          attr='get',
+                          ctx=Load()),
+                        args=[
+                          Constant(value='answer'),
+                          Call(
+                            func=Name(id='str', ctx=Load()),
+                            args=[
+                              Name(id='args', ctx=Load())])])]))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Name(id='content', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Call(
+                        func=Name(id='str', ctx=Load()),
+                        args=[
+                          Name(id='args', ctx=Load())]),
+                      attr='strip',
+                      ctx=Load())))]),
+            If(
+              test=Name(id='used_code', ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='content', ctx=Store())],
+                  value=Call(
+                    func=Name(id='_format_code_content', ctx=Load()),
+                    args=[
+                      Name(id='content', ctx=Load())]))]),
+            Assign(
+              targets=[
+                Name(id='parent_message_tool', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='gr', ctx=Load()),
+                  attr='ChatMessage',
+                  ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='role',
+                    value=Attribute(
+                      value=Name(id='MessageRole', ctx=Load()),
+                      attr='ASSISTANT',
+                      ctx=Load())),
+                  keyword(
+                    arg='content',
+                    value=Name(id='content', ctx=Load())),
+                  keyword(
+                    arg='metadata',
+                    value=Dict(
+                      keys=[
+                        Constant(value='title'),
+                        Constant(value='status')],
+                      values=[
+                        JoinedStr(
+                          values=[
+                            Constant(value='🛠️ Used tool '),
+                            FormattedValue(
+                              value=Attribute(
+                                value=Name(id='first_tool_call', ctx=Load()),
+                                attr='name',
+                                ctx=Load()),
+                              conversion=-1)]),
+                        Constant(value='done')]))])),
+            Expr(
+              value=Yield(
+                value=Name(id='parent_message_tool', ctx=Load())))]),
+        If(
+          test=BoolOp(
+            op=And(),
+            values=[
+              Call(
+                func=Name(id='getattr', ctx=Load()),
+                args=[
+                  Name(id='step_log', ctx=Load()),
+                  Constant(value='observations'),
+                  Constant(value='')]),
+              Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='step_log', ctx=Load()),
+                    attr='observations',
+                    ctx=Load()),
+                  attr='strip',
+                  ctx=Load()))]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='log_content', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='step_log', ctx=Load()),
+                    attr='observations',
+                    ctx=Load()),
+                  attr='strip',
+                  ctx=Load()))),
+            If(
+              test=Name(id='log_content', ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='log_content', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='re', ctx=Load()),
+                      attr='sub',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='^Execution logs:\\s*'),
+                      Constant(value=''),
+                      Name(id='log_content', ctx=Load())])),
+                Expr(
+                  value=Yield(
+                    value=Call(
+                      func=Attribute(
+                        value=Name(id='gr', ctx=Load()),
+                        attr='ChatMessage',
+                        ctx=Load()),
+                      keywords=[
+                        keyword(
+                          arg='role',
+                          value=Attribute(
+                            value=Name(id='MessageRole', ctx=Load()),
+                            attr='ASSISTANT',
+                            ctx=Load())),
+                        keyword(
+                          arg='content',
+                          value=JoinedStr(
+                            values=[
+                              Constant(value='```bash\n'),
+                              FormattedValue(
+                                value=Name(id='log_content', ctx=Load()),
+                                conversion=-1),
+                              Constant(value='\n')])),
+                        keyword(
+                          arg='metadata',
+                          value=Dict(
+                            keys=[
+                              Constant(value='title'),
+                              Constant(value='status')],
+                            values=[
+                              Constant(value='📝 Execution Logs'),
+                              Constant(value='done')]))])))])]),
+        If(
+          test=Call(
+            func=Name(id='getattr', ctx=Load()),
+            args=[
+              Name(id='step_log', ctx=Load()),
+              Constant(value='observations_images'),
+              List(ctx=Load())]),
+          body=[
+            For(
+              target=Name(id='image', ctx=Store()),
+              iter=Attribute(
+                value=Name(id='step_log', ctx=Load()),
+                attr='observations_images',
+                ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='path_image', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Call(
+                        func=Name(id='AgentImage', ctx=Load()),
+                        args=[
+                          Name(id='image', ctx=Load())]),
+                      attr='to_string',
+                      ctx=Load()))),
+                Expr(
+                  value=Yield(
+                    value=Call(
+                      func=Attribute(
+                        value=Name(id='gr', ctx=Load()),
+                        attr='ChatMessage',
+                        ctx=Load()),
+                      keywords=[
+                        keyword(
+                          arg='role',
+                          value=Attribute(
+                            value=Name(id='MessageRole', ctx=Load()),
+                            attr='ASSISTANT',
+                            ctx=Load())),
+                        keyword(
+                          arg='content',
+                          value=Dict(
+                            keys=[
+                              Constant(value='path'),
+                              Constant(value='mime_type')],
+                            values=[
+                              Name(id='path_image', ctx=Load()),
+                              JoinedStr(
+                                values=[
+                                  Constant(value='image/'),
+                                  FormattedValue(
+                                    value=Subscript(
+                                      value=Call(
+                                        func=Attribute(
+                                          value=Name(id='path_image', ctx=Load()),
+                                          attr='split',
+                                          ctx=Load()),
+                                        args=[
+                                          Constant(value='.')]),
+                                      slice=UnaryOp(
+                                        op=USub(),
+                                        operand=Constant(value=1)),
+                                      ctx=Load()),
+                                    conversion=-1)])])),
+                        keyword(
+                          arg='metadata',
+                          value=Dict(
+                            keys=[
+                              Constant(value='title'),
+                              Constant(value='status')],
+                            values=[
+                              Constant(value='🖼️ Output Image'),
+                              Constant(value='done')]))])))])]),
+        If(
+          test=Call(
+            func=Name(id='getattr', ctx=Load()),
+            args=[
+              Name(id='step_log', ctx=Load()),
+              Constant(value='error'),
+              Constant(value=None)]),
+          body=[
+            Expr(
+              value=Yield(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='gr', ctx=Load()),
+                    attr='ChatMessage',
+                    ctx=Load()),
+                  keywords=[
+                    keyword(
+                      arg='role',
+                      value=Attribute(
+                        value=Name(id='MessageRole', ctx=Load()),
+                        attr='ASSISTANT',
+                        ctx=Load())),
+                    keyword(
+                      arg='content',
+                      value=Call(
+                        func=Name(id='str', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='step_log', ctx=Load()),
+                            attr='error',
+                            ctx=Load())])),
+                    keyword(
+                      arg='metadata',
+                      value=Dict(
+                        keys=[
+                          Constant(value='title'),
+                          Constant(value='status')],
+                        values=[
+                          Constant(value='💥 Error'),
+                          Constant(value='done')]))])))]),
+        Expr(
+          value=Yield(
+            value=Call(
+              func=Attribute(
+                value=Name(id='gr', ctx=Load()),
+                attr='ChatMessage',
+                ctx=Load()),
+              keywords=[
+                keyword(
+                  arg='role',
+                  value=Attribute(
+                    value=Name(id='MessageRole', ctx=Load()),
+                    attr='ASSISTANT',
+                    ctx=Load())),
+                keyword(
+                  arg='content',
+                  value=Call(
+                    func=Name(id='get_step_footnote_content', ctx=Load()),
+                    args=[
+                      Name(id='step_log', ctx=Load()),
+                      Name(id='step_number', ctx=Load())])),
+                keyword(
+                  arg='metadata',
+                  value=Dict(
+                    keys=[
+                      Constant(value='status')],
+                    values=[
+                      Constant(value='done')]))]))),
+        Expr(
+          value=Yield(
+            value=Call(
+              func=Attribute(
+                value=Name(id='gr', ctx=Load()),
+                attr='ChatMessage',
+                ctx=Load()),
+              keywords=[
+                keyword(
+                  arg='role',
+                  value=Attribute(
+                    value=Name(id='MessageRole', ctx=Load()),
+                    attr='ASSISTANT',
+                    ctx=Load())),
+                keyword(
+                  arg='content',
+                  value=Constant(value='-----')),
+                keyword(
+                  arg='metadata',
+                  value=Dict(
+                    keys=[
+                      Constant(value='status')],
+                    values=[
+                      Constant(value='done')]))])))],
+      returns=Name(id='Generator', ctx=Load())),
+    FunctionDef(
+      name='_process_planning_step',
+      args=arguments(
+        args=[
+          arg(
+            arg='step_log',
+            annotation=Name(id='PlanningStep', ctx=Load())),
+          arg(
+            arg='skip_model_outputs',
+            annotation=Name(id='bool', ctx=Load()))],
+        defaults=[
+          Constant(value=False)]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Process a [`PlanningStep`] and yield appropriate gradio.ChatMessage objects.\n\n    Args:\n        step_log ([`PlanningStep`]): PlanningStep to process.\n\n    Yields:\n        `gradio.ChatMessage`: Gradio ChatMessages representing the planning step.\n    ')),
+        Import(
+          names=[
+            alias(name='gradio', asname='gr')]),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Name(id='skip_model_outputs', ctx=Load())),
+          body=[
+            Expr(
+              value=Yield(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='gr', ctx=Load()),
+                    attr='ChatMessage',
+                    ctx=Load()),
+                  keywords=[
+                    keyword(
+                      arg='role',
+                      value=Attribute(
+                        value=Name(id='MessageRole', ctx=Load()),
+                        attr='ASSISTANT',
+                        ctx=Load())),
+                    keyword(
+                      arg='content',
+                      value=Constant(value='**Planning step**')),
+                    keyword(
+                      arg='metadata',
+                      value=Dict(
+                        keys=[
+                          Constant(value='status')],
+                        values=[
+                          Constant(value='done')]))]))),
+            Expr(
+              value=Yield(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='gr', ctx=Load()),
+                    attr='ChatMessage',
+                    ctx=Load()),
+                  keywords=[
+                    keyword(
+                      arg='role',
+                      value=Attribute(
+                        value=Name(id='MessageRole', ctx=Load()),
+                        attr='ASSISTANT',
+                        ctx=Load())),
+                    keyword(
+                      arg='content',
+                      value=Attribute(
+                        value=Name(id='step_log', ctx=Load()),
+                        attr='plan',
+                        ctx=Load())),
+                    keyword(
+                      arg='metadata',
+                      value=Dict(
+                        keys=[
+                          Constant(value='status')],
+                        values=[
+                          Constant(value='done')]))])))]),
+        Expr(
+          value=Yield(
+            value=Call(
+              func=Attribute(
+                value=Name(id='gr', ctx=Load()),
+                attr='ChatMessage',
+                ctx=Load()),
+              keywords=[
+                keyword(
+                  arg='role',
+                  value=Attribute(
+                    value=Name(id='MessageRole', ctx=Load()),
+                    attr='ASSISTANT',
+                    ctx=Load())),
+                keyword(
+                  arg='content',
+                  value=Call(
+                    func=Name(id='get_step_footnote_content', ctx=Load()),
+                    args=[
+                      Name(id='step_log', ctx=Load()),
+                      Constant(value='Planning step')])),
+                keyword(
+                  arg='metadata',
+                  value=Dict(
+                    keys=[
+                      Constant(value='status')],
+                    values=[
+                      Constant(value='done')]))]))),
+        Expr(
+          value=Yield(
+            value=Call(
+              func=Attribute(
+                value=Name(id='gr', ctx=Load()),
+                attr='ChatMessage',
+                ctx=Load()),
+              keywords=[
+                keyword(
+                  arg='role',
+                  value=Attribute(
+                    value=Name(id='MessageRole', ctx=Load()),
+                    attr='ASSISTANT',
+                    ctx=Load())),
+                keyword(
+                  arg='content',
+                  value=Constant(value='-----')),
+                keyword(
+                  arg='metadata',
+                  value=Dict(
+                    keys=[
+                      Constant(value='status')],
+                    values=[
+                      Constant(value='done')]))])))],
+      returns=Name(id='Generator', ctx=Load())),
+    FunctionDef(
+      name='_process_final_answer_step',
+      args=arguments(
+        args=[
+          arg(
+            arg='step_log',
+            annotation=Name(id='FinalAnswerStep', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Process a [`FinalAnswerStep`] and yield appropriate gradio.ChatMessage objects.\n\n    Args:\n        step_log ([`FinalAnswerStep`]): FinalAnswerStep to process.\n\n    Yields:\n        `gradio.ChatMessage`: Gradio ChatMessages representing the final answer.\n    ')),
+        Import(
+          names=[
+            alias(name='gradio', asname='gr')]),
+        Assign(
+          targets=[
+            Name(id='final_answer', ctx=Store())],
+          value=Attribute(
+            value=Name(id='step_log', ctx=Load()),
+            attr='output',
+            ctx=Load())),
+        If(
+          test=Call(
+            func=Name(id='isinstance', ctx=Load()),
+            args=[
+              Name(id='final_answer', ctx=Load()),
+              Name(id='AgentText', ctx=Load())]),
+          body=[
+            Expr(
+              value=Yield(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='gr', ctx=Load()),
+                    attr='ChatMessage',
+                    ctx=Load()),
+                  keywords=[
+                    keyword(
+                      arg='role',
+                      value=Attribute(
+                        value=Name(id='MessageRole', ctx=Load()),
+                        attr='ASSISTANT',
+                        ctx=Load())),
+                    keyword(
+                      arg='content',
+                      value=JoinedStr(
+                        values=[
+                          Constant(value='**Final answer:**\n'),
+                          FormattedValue(
+                            value=Call(
+                              func=Attribute(
+                                value=Name(id='final_answer', ctx=Load()),
+                                attr='to_string',
+                                ctx=Load())),
+                            conversion=-1),
+                          Constant(value='\n')])),
+                    keyword(
+                      arg='metadata',
+                      value=Dict(
+                        keys=[
+                          Constant(value='status')],
+                        values=[
+                          Constant(value='done')]))])))],
+          orelse=[
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='final_answer', ctx=Load()),
+                  Name(id='AgentImage', ctx=Load())]),
+              body=[
+                Expr(
+                  value=Yield(
+                    value=Call(
+                      func=Attribute(
+                        value=Name(id='gr', ctx=Load()),
+                        attr='ChatMessage',
+                        ctx=Load()),
+                      keywords=[
+                        keyword(
+                          arg='role',
+                          value=Attribute(
+                            value=Name(id='MessageRole', ctx=Load()),
+                            attr='ASSISTANT',
+                            ctx=Load())),
+                        keyword(
+                          arg='content',
+                          value=Dict(
+                            keys=[
+                              Constant(value='path'),
+                              Constant(value='mime_type')],
+                            values=[
+                              Call(
+                                func=Attribute(
+                                  value=Name(id='final_answer', ctx=Load()),
+                                  attr='to_string',
+                                  ctx=Load())),
+                              Constant(value='image/png')])),
+                        keyword(
+                          arg='metadata',
+                          value=Dict(
+                            keys=[
+                              Constant(value='status')],
+                            values=[
+                              Constant(value='done')]))])))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='final_answer', ctx=Load()),
+                      Name(id='AgentAudio', ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=Yield(
+                        value=Call(
+                          func=Attribute(
+                            value=Name(id='gr', ctx=Load()),
+                            attr='ChatMessage',
+                            ctx=Load()),
+                          keywords=[
+                            keyword(
+                              arg='role',
+                              value=Attribute(
+                                value=Name(id='MessageRole', ctx=Load()),
+                                attr='ASSISTANT',
+                                ctx=Load())),
+                            keyword(
+                              arg='content',
+                              value=Dict(
+                                keys=[
+                                  Constant(value='path'),
+                                  Constant(value='mime_type')],
+                                values=[
+                                  Call(
+                                    func=Attribute(
+                                      value=Name(id='final_answer', ctx=Load()),
+                                      attr='to_string',
+                                      ctx=Load())),
+                                  Constant(value='audio/wav')])),
+                            keyword(
+                              arg='metadata',
+                              value=Dict(
+                                keys=[
+                                  Constant(value='status')],
+                                values=[
+                                  Constant(value='done')]))])))],
+                  orelse=[
+                    Expr(
+                      value=Yield(
+                        value=Call(
+                          func=Attribute(
+                            value=Name(id='gr', ctx=Load()),
+                            attr='ChatMessage',
+                            ctx=Load()),
+                          keywords=[
+                            keyword(
+                              arg='role',
+                              value=Attribute(
+                                value=Name(id='MessageRole', ctx=Load()),
+                                attr='ASSISTANT',
+                                ctx=Load())),
+                            keyword(
+                              arg='content',
+                              value=JoinedStr(
+                                values=[
+                                  Constant(value='**Final answer:** '),
+                                  FormattedValue(
+                                    value=Call(
+                                      func=Name(id='str', ctx=Load()),
+                                      args=[
+                                        Name(id='final_answer', ctx=Load())]),
+                                    conversion=-1)])),
+                            keyword(
+                              arg='metadata',
+                              value=Dict(
+                                keys=[
+                                  Constant(value='status')],
+                                values=[
+                                  Constant(value='done')]))])))])])])],
+      returns=Name(id='Generator', ctx=Load())),
+    FunctionDef(
+      name='pull_messages_from_step',
+      args=arguments(
+        args=[
+          arg(
+            arg='step_log',
+            annotation=BinOp(
+              left=BinOp(
+                left=Name(id='ActionStep', ctx=Load()),
+                op=BitOr(),
+                right=Name(id='PlanningStep', ctx=Load())),
+              op=BitOr(),
+              right=Name(id='FinalAnswerStep', ctx=Load()))),
+          arg(
+            arg='skip_model_outputs',
+            annotation=Name(id='bool', ctx=Load()))],
+        defaults=[
+          Constant(value=False)]),
+      body=[
+        Expr(
+          value=Constant(value='Extract Gradio ChatMessage objects from agent steps with proper nesting.\n\n    Args:\n        step_log: The step log to display as gr.ChatMessage objects.\n        skip_model_outputs: If True, skip the model outputs when creating the gr.ChatMessage objects:\n            This is used for instance when streaming model outputs have already been displayed.\n    ')),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Call(
+              func=Name(id='_is_package_available', ctx=Load()),
+              args=[
+                Constant(value='gradio')])),
+          body=[
+            Raise(
+              exc=Call(
+                func=Name(id='ModuleNotFoundError', ctx=Load()),
+                args=[
+                  Constant(value="Please install 'gradio' extra to use the GradioUI: `pip install 'smolagents[gradio]'`")]))]),
+        If(
+          test=Call(
+            func=Name(id='isinstance', ctx=Load()),
+            args=[
+              Name(id='step_log', ctx=Load()),
+              Name(id='ActionStep', ctx=Load())]),
+          body=[
+            Expr(
+              value=YieldFrom(
+                value=Call(
+                  func=Name(id='_process_action_step', ctx=Load()),
+                  args=[
+                    Name(id='step_log', ctx=Load()),
+                    Name(id='skip_model_outputs', ctx=Load())])))],
+          orelse=[
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='step_log', ctx=Load()),
+                  Name(id='PlanningStep', ctx=Load())]),
+              body=[
+                Expr(
+                  value=YieldFrom(
+                    value=Call(
+                      func=Name(id='_process_planning_step', ctx=Load()),
+                      args=[
+                        Name(id='step_log', ctx=Load()),
+                        Name(id='skip_model_outputs', ctx=Load())])))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='step_log', ctx=Load()),
+                      Name(id='FinalAnswerStep', ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=YieldFrom(
+                        value=Call(
+                          func=Name(id='_process_final_answer_step', ctx=Load()),
+                          args=[
+                            Name(id='step_log', ctx=Load())])))],
+                  orelse=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='ValueError', ctx=Load()),
+                        args=[
+                          JoinedStr(
+                            values=[
+                              Constant(value='Unsupported step type: '),
+                              FormattedValue(
+                                value=Call(
+                                  func=Name(id='type', ctx=Load()),
+                                  args=[
+                                    Name(id='step_log', ctx=Load())]),
+                                conversion=-1)])]))])])])]),
+    FunctionDef(
+      name='stream_to_gradio',
+      args=arguments(
+        args=[
+          arg(arg='agent'),
+          arg(
+            arg='task',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='task_images',
+            annotation=BinOp(
+              left=Name(id='list', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='reset_agent_memory',
+            annotation=Name(id='bool', ctx=Load())),
+          arg(
+            arg='additional_args',
+            annotation=BinOp(
+              left=Name(id='dict', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None)))],
+        defaults=[
+          Constant(value=None),
+          Constant(value=False),
+          Constant(value=None)]),
+      body=[
+        Expr(
+          value=Constant(value='Runs an agent with the given task and streams the messages from the agent as gradio ChatMessages.')),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Call(
+              func=Name(id='_is_package_available', ctx=Load()),
+              args=[
+                Constant(value='gradio')])),
+          body=[
+            Raise(
+              exc=Call(
+                func=Name(id='ModuleNotFoundError', ctx=Load()),
+                args=[
+                  Constant(value="Please install 'gradio' extra to use the GradioUI: `pip install 'smolagents[gradio]'`")]))]),
+        AnnAssign(
+          target=Name(id='accumulated_events', ctx=Store()),
+          annotation=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='ChatMessageStreamDelta', ctx=Load()),
+            ctx=Load()),
+          value=List(ctx=Load()),
+          simple=1),
+        For(
+          target=Name(id='event', ctx=Store()),
+          iter=Call(
+            func=Attribute(
+              value=Name(id='agent', ctx=Load()),
+              attr='run',
+              ctx=Load()),
+            args=[
+              Name(id='task', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='images',
+                value=Name(id='task_images', ctx=Load())),
+              keyword(
+                arg='stream',
+                value=Constant(value=True)),
+              keyword(
+                arg='reset',
+                value=Name(id='reset_agent_memory', ctx=Load())),
+              keyword(
+                arg='additional_args',
+                value=Name(id='additional_args', ctx=Load()))]),
+          body=[
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='event', ctx=Load()),
+                  BinOp(
+                    left=BinOp(
+                      left=Name(id='ActionStep', ctx=Load()),
+                      op=BitOr(),
+                      right=Name(id='PlanningStep', ctx=Load())),
+                    op=BitOr(),
+                    right=Name(id='FinalAnswerStep', ctx=Load()))]),
+              body=[
+                For(
+                  target=Name(id='message', ctx=Store()),
+                  iter=Call(
+                    func=Name(id='pull_messages_from_step', ctx=Load()),
+                    args=[
+                      Name(id='event', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='skip_model_outputs',
+                        value=Call(
+                          func=Name(id='getattr', ctx=Load()),
+                          args=[
+                            Name(id='agent', ctx=Load()),
+                            Constant(value='stream_outputs'),
+                            Constant(value=False)]))]),
+                  body=[
+                    Expr(
+                      value=Yield(
+                        value=Name(id='message', ctx=Load())))]),
+                Assign(
+                  targets=[
+                    Name(id='accumulated_events', ctx=Store())],
+                  value=List(ctx=Load()))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='event', ctx=Load()),
+                      Name(id='ChatMessageStreamDelta', ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='accumulated_events', ctx=Load()),
+                          attr='append',
+                          ctx=Load()),
+                        args=[
+                          Name(id='event', ctx=Load())])),
+                    Assign(
+                      targets=[
+                        Name(id='text', ctx=Store())],
+                      value=Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Name(id='agglomerate_stream_deltas', ctx=Load()),
+                            args=[
+                              Name(id='accumulated_events', ctx=Load())]),
+                          attr='render_as_markdown',
+                          ctx=Load()))),
+                    Expr(
+                      value=Yield(
+                        value=Name(id='text', ctx=Load())))])])])],
+      returns=Name(id='Generator', ctx=Load())),
+    ClassDef(
+      name='GradioUI',
+      body=[
+        Expr(
+          value=Constant(value='\n    Gradio interface for interacting with a [`MultiStepAgent`].\n\n    This class provides a web interface to interact with the agent in real-time, allowing users to submit prompts, upload files, and receive responses in a chat-like format.\n    It uses the modern [`gradio.ChatInterface`] component for a native chatbot experience.\n    It can reset the agent\'s memory at the start of each interaction if desired.\n    It supports file uploads via multimodal input.\n    This class requires the `gradio` extra to be installed: `pip install \'smolagents[gradio]\'`.\n\n    Args:\n        agent ([`MultiStepAgent`]): The agent to interact with.\n        file_upload_folder (`str`, *optional*): The folder where uploaded files will be saved.\n            If not provided, file uploads are disabled.\n        reset_agent_memory (`bool`, *optional*, defaults to `False`): Whether to reset the agent\'s memory at the start of each interaction.\n            If `True`, the agent will not remember previous interactions.\n\n    Raises:\n        ModuleNotFoundError: If the `gradio` extra is not installed.\n\n    Example:\n        ```python\n        from smolagents import CodeAgent, GradioUI, InferenceClientModel\n\n        model = InferenceClientModel(model_id="meta-llama/Meta-Llama-3.1-8B-Instruct")\n        agent = CodeAgent(tools=[], model=model)\n        gradio_ui = GradioUI(agent, file_upload_folder="uploads", reset_agent_memory=True)\n        gradio_ui.launch()\n        ```\n    ')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='agent',
+                annotation=Name(id='MultiStepAgent', ctx=Load())),
+              arg(
+                arg='file_upload_folder',
+                annotation=BinOp(
+                  left=Name(id='str', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(
+                arg='reset_agent_memory',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=None),
+              Constant(value=False)]),
+          body=[
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=Call(
+                  func=Name(id='_is_package_available', ctx=Load()),
+                  args=[
+                    Constant(value='gradio')])),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ModuleNotFoundError', ctx=Load()),
+                    args=[
+                      Constant(value="Please install 'gradio' extra to use the GradioUI: `pip install 'smolagents[gradio]'`")]))]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='agent',
+                  ctx=Store())],
+              value=Name(id='agent', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='file_upload_folder',
+                  ctx=Store())],
+              value=IfExp(
+                test=Compare(
+                  left=Name(id='file_upload_folder', ctx=Load()),
+                  ops=[
+                    IsNot()],
+                  comparators=[
+                    Constant(value=None)]),
+                body=Call(
+                  func=Name(id='Path', ctx=Load()),
+                  args=[
+                    Name(id='file_upload_folder', ctx=Load())]),
+                orelse=Constant(value=None))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='reset_agent_memory',
+                  ctx=Store())],
+              value=Name(id='reset_agent_memory', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='name',
+                  ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Call(
+                    func=Name(id='getattr', ctx=Load()),
+                    args=[
+                      Name(id='agent', ctx=Load()),
+                      Constant(value='name')]),
+                  Constant(value='Agent interface')])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='description',
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='getattr', ctx=Load()),
+                args=[
+                  Name(id='agent', ctx=Load()),
+                  Constant(value='description'),
+                  Constant(value=None)])),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='file_upload_folder',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                If(
+                  test=UnaryOp(
+                    op=Not(),
+                    operand=Call(
+                      func=Attribute(
+                        value=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='file_upload_folder',
+                          ctx=Load()),
+                        attr='exists',
+                        ctx=Load()))),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='file_upload_folder',
+                            ctx=Load()),
+                          attr='mkdir',
+                          ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='parents',
+                            value=Constant(value=True)),
+                          keyword(
+                            arg='exist_ok',
+                            value=Constant(value=True))]))])])]),
+        FunctionDef(
+          name='_save_uploaded_file',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='file_path',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='Save an uploaded file to the upload folder and return the new path.')),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='file_upload_folder',
+                  ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Return(
+                  value=Name(id='file_path', ctx=Load()))]),
+            Assign(
+              targets=[
+                Name(id='original_name', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='os', ctx=Load()),
+                    attr='path',
+                    ctx=Load()),
+                  attr='basename',
+                  ctx=Load()),
+                args=[
+                  Name(id='file_path', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='sanitized_name', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='re', ctx=Load()),
+                  attr='sub',
+                  ctx=Load()),
+                args=[
+                  Constant(value='[^\\w\\-.]'),
+                  Constant(value='_'),
+                  Name(id='original_name', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='dest_path', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='os', ctx=Load()),
+                    attr='path',
+                    ctx=Load()),
+                  attr='join',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='file_upload_folder',
+                    ctx=Load()),
+                  Name(id='sanitized_name', ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='shutil', ctx=Load()),
+                  attr='copy',
+                  ctx=Load()),
+                args=[
+                  Name(id='file_path', ctx=Load()),
+                  Name(id='dest_path', ctx=Load())])),
+            Return(
+              value=Name(id='dest_path', ctx=Load()))],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='upload_file',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='file'),
+              arg(
+                arg='file_uploads_log',
+                annotation=Name(id='list', ctx=Load())),
+              arg(
+                arg='allowed_file_types',
+                annotation=BinOp(
+                  left=Name(id='list', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))],
+            defaults=[
+              Constant(value=None)]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Handle file upload with validation.\n\n        Args:\n            file: The uploaded file object.\n            file_uploads_log: List to track uploaded files.\n            allowed_file_types: List of allowed extensions. Defaults to [".pdf", ".docx", ".txt"].\n\n        Returns:\n            Tuple of (status textbox, updated file log).\n        ')),
+            Import(
+              names=[
+                alias(name='gradio', asname='gr')]),
+            If(
+              test=Compare(
+                left=Name(id='file', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Return(
+                  value=Tuple(
+                    elts=[
+                      Call(
+                        func=Attribute(
+                          value=Name(id='gr', ctx=Load()),
+                          attr='Textbox',
+                          ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='value',
+                            value=Constant(value='No file uploaded')),
+                          keyword(
+                            arg='visible',
+                            value=Constant(value=True))]),
+                      Name(id='file_uploads_log', ctx=Load())],
+                    ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Name(id='allowed_file_types', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='allowed_file_types', ctx=Store())],
+                  value=List(
+                    elts=[
+                      Constant(value='.pdf'),
+                      Constant(value='.docx'),
+                      Constant(value='.txt')],
+                    ctx=Load()))]),
+            Assign(
+              targets=[
+                Name(id='file_ext', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Subscript(
+                    value=Call(
+                      func=Attribute(
+                        value=Attribute(
+                          value=Name(id='os', ctx=Load()),
+                          attr='path',
+                          ctx=Load()),
+                        attr='splitext',
+                        ctx=Load()),
+                      args=[
+                        Attribute(
+                          value=Name(id='file', ctx=Load()),
+                          attr='name',
+                          ctx=Load())]),
+                    slice=Constant(value=1),
+                    ctx=Load()),
+                  attr='lower',
+                  ctx=Load()))),
+            If(
+              test=Compare(
+                left=Name(id='file_ext', ctx=Load()),
+                ops=[
+                  NotIn()],
+                comparators=[
+                  Name(id='allowed_file_types', ctx=Load())]),
+              body=[
+                Return(
+                  value=Tuple(
+                    elts=[
+                      Call(
+                        func=Attribute(
+                          value=Name(id='gr', ctx=Load()),
+                          attr='Textbox',
+                          ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='value',
+                            value=Constant(value='File type disallowed')),
+                          keyword(
+                            arg='visible',
+                            value=Constant(value=True))]),
+                      Name(id='file_uploads_log', ctx=Load())],
+                    ctx=Load()))]),
+            Assign(
+              targets=[
+                Name(id='file_path', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_save_uploaded_file',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='file', ctx=Load()),
+                    attr='name',
+                    ctx=Load())])),
+            Return(
+              value=Tuple(
+                elts=[
+                  Call(
+                    func=Attribute(
+                      value=Name(id='gr', ctx=Load()),
+                      attr='Textbox',
+                      ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='value',
+                        value=JoinedStr(
+                          values=[
+                            Constant(value='File uploaded: '),
+                            FormattedValue(
+                              value=Name(id='file_path', ctx=Load()),
+                              conversion=-1)])),
+                      keyword(
+                        arg='visible',
+                        value=Constant(value=True))]),
+                  BinOp(
+                    left=Name(id='file_uploads_log', ctx=Load()),
+                    op=Add(),
+                    right=List(
+                      elts=[
+                        Name(id='file_path', ctx=Load())],
+                      ctx=Load()))],
+                ctx=Load()))]),
+        FunctionDef(
+          name='_process_message',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='message',
+                annotation=BinOp(
+                  left=Name(id='str', ctx=Load()),
+                  op=BitOr(),
+                  right=Name(id='dict', ctx=Load())))]),
+          body=[
+            Expr(
+              value=Constant(value='Process incoming message and extract text and files.')),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='message', ctx=Load()),
+                  Name(id='str', ctx=Load())]),
+              body=[
+                Return(
+                  value=Tuple(
+                    elts=[
+                      Name(id='message', ctx=Load()),
+                      Constant(value=None)],
+                    ctx=Load()))]),
+            Assign(
+              targets=[
+                Name(id='text', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='message', ctx=Load()),
+                  attr='get',
+                  ctx=Load()),
+                args=[
+                  Constant(value='text'),
+                  Constant(value='')])),
+            Assign(
+              targets=[
+                Name(id='files', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='message', ctx=Load()),
+                  attr='get',
+                  ctx=Load()),
+                args=[
+                  Constant(value='files'),
+                  List(ctx=Load())])),
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Name(id='files', ctx=Load()),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='file_upload_folder',
+                    ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='saved_files', ctx=Store())],
+                  value=ListComp(
+                    elt=Call(
+                      func=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_save_uploaded_file',
+                        ctx=Load()),
+                      args=[
+                        Name(id='f', ctx=Load())]),
+                    generators=[
+                      comprehension(
+                        target=Name(id='f', ctx=Store()),
+                        iter=Name(id='files', ctx=Load()),
+                        is_async=0)])),
+                If(
+                  test=Name(id='saved_files', ctx=Load()),
+                  body=[
+                    AugAssign(
+                      target=Name(id='text', ctx=Store()),
+                      op=Add(),
+                      value=JoinedStr(
+                        values=[
+                          Constant(value='\nYou have been provided with these files: '),
+                          FormattedValue(
+                            value=Name(id='saved_files', ctx=Load()),
+                            conversion=-1)]))]),
+                Return(
+                  value=Tuple(
+                    elts=[
+                      Name(id='text', ctx=Load()),
+                      Name(id='saved_files', ctx=Load())],
+                    ctx=Load()))]),
+            Return(
+              value=Tuple(
+                elts=[
+                  Name(id='text', ctx=Load()),
+                  IfExp(
+                    test=Name(id='files', ctx=Load()),
+                    body=Name(id='files', ctx=Load()),
+                    orelse=Constant(value=None))],
+                ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='tuple', ctx=Load()),
+            slice=Tuple(
+              elts=[
+                Name(id='str', ctx=Load()),
+                BinOp(
+                  left=Subscript(
+                    value=Name(id='list', ctx=Load()),
+                    slice=Name(id='str', ctx=Load()),
+                    ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))],
+              ctx=Load()),
+            ctx=Load())),
+        FunctionDef(
+          name='_stream_response',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='message',
+                annotation=BinOp(
+                  left=Name(id='str', ctx=Load()),
+                  op=BitOr(),
+                  right=Name(id='dict', ctx=Load()))),
+              arg(
+                arg='history',
+                annotation=Subscript(
+                  value=Name(id='list', ctx=Load()),
+                  slice=Name(id='dict', ctx=Load()),
+                  ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='Stream agent responses for ChatInterface.')),
+            Import(
+              names=[
+                alias(name='gradio', asname='gr')]),
+            Assign(
+              targets=[
+                Tuple(
+                  elts=[
+                    Name(id='task', ctx=Store()),
+                    Name(id='task_files', ctx=Store())],
+                  ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_process_message',
+                  ctx=Load()),
+                args=[
+                  Name(id='message', ctx=Load())])),
+            AnnAssign(
+              target=Name(id='all_messages', ctx=Store()),
+              annotation=Subscript(
+                value=Name(id='list', ctx=Load()),
+                slice=Attribute(
+                  value=Name(id='gr', ctx=Load()),
+                  attr='ChatMessage',
+                  ctx=Load()),
+                ctx=Load()),
+              value=List(ctx=Load()),
+              simple=1),
+            AnnAssign(
+              target=Name(id='accumulated_events', ctx=Store()),
+              annotation=Subscript(
+                value=Name(id='list', ctx=Load()),
+                slice=Name(id='ChatMessageStreamDelta', ctx=Load()),
+                ctx=Load()),
+              value=List(ctx=Load()),
+              simple=1),
+            AnnAssign(
+              target=Name(id='streaming_msg_idx', ctx=Store()),
+              annotation=BinOp(
+                left=Name(id='int', ctx=Load()),
+                op=BitOr(),
+                right=Constant(value=None)),
+              value=Constant(value=None),
+              simple=1),
+            For(
+              target=Name(id='event', ctx=Store()),
+              iter=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='agent',
+                    ctx=Load()),
+                  attr='run',
+                  ctx=Load()),
+                args=[
+                  Name(id='task', ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='images',
+                    value=Name(id='task_files', ctx=Load())),
+                  keyword(
+                    arg='stream',
+                    value=Constant(value=True)),
+                  keyword(
+                    arg='reset',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='reset_agent_memory',
+                      ctx=Load())),
+                  keyword(
+                    arg='additional_args',
+                    value=Constant(value=None))]),
+              body=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='event', ctx=Load()),
+                      BinOp(
+                        left=BinOp(
+                          left=Name(id='ActionStep', ctx=Load()),
+                          op=BitOr(),
+                          right=Name(id='PlanningStep', ctx=Load())),
+                        op=BitOr(),
+                        right=Name(id='FinalAnswerStep', ctx=Load()))]),
+                  body=[
+                    If(
+                      test=Compare(
+                        left=Name(id='streaming_msg_idx', ctx=Load()),
+                        ops=[
+                          IsNot()],
+                        comparators=[
+                          Constant(value=None)]),
+                      body=[
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='all_messages', ctx=Load()),
+                              attr='pop',
+                              ctx=Load()),
+                            args=[
+                              Name(id='streaming_msg_idx', ctx=Load())])),
+                        Assign(
+                          targets=[
+                            Name(id='streaming_msg_idx', ctx=Store())],
+                          value=Constant(value=None))]),
+                    For(
+                      target=Name(id='msg', ctx=Store()),
+                      iter=Call(
+                        func=Name(id='pull_messages_from_step', ctx=Load()),
+                        args=[
+                          Name(id='event', ctx=Load())],
+                        keywords=[
+                          keyword(
+                            arg='skip_model_outputs',
+                            value=Call(
+                              func=Name(id='getattr', ctx=Load()),
+                              args=[
+                                Attribute(
+                                  value=Name(id='self', ctx=Load()),
+                                  attr='agent',
+                                  ctx=Load()),
+                                Constant(value='stream_outputs'),
+                                Constant(value=False)]))]),
+                      body=[
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='all_messages', ctx=Load()),
+                              attr='append',
+                              ctx=Load()),
+                            args=[
+                              Call(
+                                func=Attribute(
+                                  value=Name(id='gr', ctx=Load()),
+                                  attr='ChatMessage',
+                                  ctx=Load()),
+                                keywords=[
+                                  keyword(
+                                    arg='role',
+                                    value=Attribute(
+                                      value=Name(id='msg', ctx=Load()),
+                                      attr='role',
+                                      ctx=Load())),
+                                  keyword(
+                                    arg='content',
+                                    value=Attribute(
+                                      value=Name(id='msg', ctx=Load()),
+                                      attr='content',
+                                      ctx=Load())),
+                                  keyword(
+                                    arg='metadata',
+                                    value=Attribute(
+                                      value=Name(id='msg', ctx=Load()),
+                                      attr='metadata',
+                                      ctx=Load()))])])),
+                        Expr(
+                          value=Yield(
+                            value=Name(id='all_messages', ctx=Load())))]),
+                    Assign(
+                      targets=[
+                        Name(id='accumulated_events', ctx=Store())],
+                      value=List(ctx=Load()))],
+                  orelse=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Name(id='event', ctx=Load()),
+                          Name(id='ChatMessageStreamDelta', ctx=Load())]),
+                      body=[
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='accumulated_events', ctx=Load()),
+                              attr='append',
+                              ctx=Load()),
+                            args=[
+                              Name(id='event', ctx=Load())])),
+                        Assign(
+                          targets=[
+                            Name(id='text', ctx=Store())],
+                          value=Call(
+                            func=Attribute(
+                              value=Call(
+                                func=Name(id='agglomerate_stream_deltas', ctx=Load()),
+                                args=[
+                                  Name(id='accumulated_events', ctx=Load())]),
+                              attr='render_as_markdown',
+                              ctx=Load()))),
+                        Assign(
+                          targets=[
+                            Name(id='text', ctx=Store())],
+                          value=Call(
+                            func=Attribute(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='text', ctx=Load()),
+                                  attr='replace',
+                                  ctx=Load()),
+                                args=[
+                                  Constant(value='<'),
+                                  Constant(value='\\<')]),
+                              attr='replace',
+                              ctx=Load()),
+                            args=[
+                              Constant(value='>'),
+                              Constant(value='\\>')])),
+                        Assign(
+                          targets=[
+                            Name(id='msg', ctx=Store())],
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='gr', ctx=Load()),
+                              attr='ChatMessage',
+                              ctx=Load()),
+                            keywords=[
+                              keyword(
+                                arg='role',
+                                value=Constant(value='assistant')),
+                              keyword(
+                                arg='content',
+                                value=Name(id='text', ctx=Load()))])),
+                        If(
+                          test=Compare(
+                            left=Name(id='streaming_msg_idx', ctx=Load()),
+                            ops=[
+                              Is()],
+                            comparators=[
+                              Constant(value=None)]),
+                          body=[
+                            Assign(
+                              targets=[
+                                Name(id='streaming_msg_idx', ctx=Store())],
+                              value=Call(
+                                func=Name(id='len', ctx=Load()),
+                                args=[
+                                  Name(id='all_messages', ctx=Load())])),
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='all_messages', ctx=Load()),
+                                  attr='append',
+                                  ctx=Load()),
+                                args=[
+                                  Name(id='msg', ctx=Load())]))],
+                          orelse=[
+                            Assign(
+                              targets=[
+                                Subscript(
+                                  value=Name(id='all_messages', ctx=Load()),
+                                  slice=Name(id='streaming_msg_idx', ctx=Load()),
+                                  ctx=Store())],
+                              value=Name(id='msg', ctx=Load()))]),
+                        Expr(
+                          value=Yield(
+                            value=Name(id='all_messages', ctx=Load())))])])])],
+          returns=Name(id='Generator', ctx=Load())),
+        FunctionDef(
+          name='launch',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='share',
+                annotation=Name(id='bool', ctx=Load()))],
+            kwarg=arg(arg='kwargs'),
+            defaults=[
+              Constant(value=True)]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Launch the Gradio app with the agent interface.\n\n        Args:\n            share (`bool`, defaults to `True`): Whether to share the app publicly.\n            **kwargs: Additional keyword arguments to pass to the Gradio launch method.\n        ')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='create_app',
+                      ctx=Load())),
+                  attr='launch',
+                  ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='debug',
+                    value=Constant(value=True)),
+                  keyword(
+                    arg='share',
+                    value=Name(id='share', ctx=Load())),
+                  keyword(
+                    value=Name(id='kwargs', ctx=Load()))]))]),
+        FunctionDef(
+          name='create_app',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Import(
+              names=[
+                alias(name='gradio', asname='gr')]),
+            Assign(
+              targets=[
+                Name(id='type_messages_kwarg', ctx=Store())],
+              value=IfExp(
+                test=Call(
+                  func=Attribute(
+                    value=Attribute(
+                      value=Name(id='gr', ctx=Load()),
+                      attr='__version__',
+                      ctx=Load()),
+                    attr='startswith',
+                    ctx=Load()),
+                  args=[
+                    Constant(value='5')]),
+                body=Dict(
+                  keys=[
+                    Constant(value='type')],
+                  values=[
+                    Constant(value='messages')]),
+                orelse=Dict())),
+            Assign(
+              targets=[
+                Name(id='chatbot', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='gr', ctx=Load()),
+                  attr='Chatbot',
+                  ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='label',
+                    value=Constant(value='Agent')),
+                  keyword(
+                    arg='avatar_images',
+                    value=Tuple(
+                      elts=[
+                        Constant(value=None),
+                        Constant(value='https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/mascot_smol.png')],
+                      ctx=Load())),
+                  keyword(
+                    arg='latex_delimiters',
+                    value=List(
+                      elts=[
+                        Dict(
+                          keys=[
+                            Constant(value='left'),
+                            Constant(value='right'),
+                            Constant(value='display')],
+                          values=[
+                            Constant(value='$$'),
+                            Constant(value='$$'),
+                            Constant(value=True)]),
+                        Dict(
+                          keys=[
+                            Constant(value='left'),
+                            Constant(value='right'),
+                            Constant(value='display')],
+                          values=[
+                            Constant(value='$'),
+                            Constant(value='$'),
+                            Constant(value=False)]),
+                        Dict(
+                          keys=[
+                            Constant(value='left'),
+                            Constant(value='right'),
+                            Constant(value='display')],
+                          values=[
+                            Constant(value='\\['),
+                            Constant(value='\\]'),
+                            Constant(value=True)]),
+                        Dict(
+                          keys=[
+                            Constant(value='left'),
+                            Constant(value='right'),
+                            Constant(value='display')],
+                          values=[
+                            Constant(value='\\('),
+                            Constant(value='\\)'),
+                            Constant(value=False)])],
+                      ctx=Load())),
+                  keyword(
+                    value=Name(id='type_messages_kwarg', ctx=Load()))])),
+            Assign(
+              targets=[
+                Name(id='demo', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='gr', ctx=Load()),
+                  attr='ChatInterface',
+                  ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='fn',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_stream_response',
+                      ctx=Load())),
+                  keyword(
+                    arg='chatbot',
+                    value=Name(id='chatbot', ctx=Load())),
+                  keyword(
+                    arg='title',
+                    value=Call(
+                      func=Attribute(
+                        value=Call(
+                          func=Attribute(
+                            value=Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='name',
+                              ctx=Load()),
+                            attr='replace',
+                            ctx=Load()),
+                          args=[
+                            Constant(value='_'),
+                            Constant(value=' ')]),
+                        attr='capitalize',
+                        ctx=Load()))),
+                  keyword(
+                    arg='multimodal',
+                    value=Compare(
+                      left=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='file_upload_folder',
+                        ctx=Load()),
+                      ops=[
+                        IsNot()],
+                      comparators=[
+                        Constant(value=None)])),
+                  keyword(
+                    arg='save_history',
+                    value=Constant(value=True)),
+                  keyword(
+                    value=Name(id='type_messages_kwarg', ctx=Load()))])),
+            Return(
+              value=Name(id='demo', ctx=Load()))])]),
+    Assign(
+      targets=[
+        Name(id='__all__', ctx=Store())],
+      value=List(
+        elts=[
+          Constant(value='stream_to_gradio'),
+          Constant(value='GradioUI')],
+        ctx=Load()))])

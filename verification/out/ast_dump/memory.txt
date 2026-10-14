@@ -1,0 +1,1696 @@
+Module(
+  body=[
+    Import(
+      names=[
+        alias(name='inspect')]),
+    ImportFrom(
+      module='dataclasses',
+      names=[
+        alias(name='asdict'),
+        alias(name='dataclass')],
+      level=0),
+    ImportFrom(
+      module='logging',
+      names=[
+        alias(name='getLogger')],
+      level=0),
+    ImportFrom(
+      module='typing',
+      names=[
+        alias(name='TYPE_CHECKING'),
+        alias(name='Any'),
+        alias(name='Callable'),
+        alias(name='Type')],
+      level=0),
+    ImportFrom(
+      module='smolagents.models',
+      names=[
+        alias(name='ChatMessage'),
+        alias(name='MessageRole'),
+        alias(name='get_dict_from_nested_dataclasses')],
+      level=0),
+    ImportFrom(
+      module='smolagents.monitoring',
+      names=[
+        alias(name='AgentLogger'),
+        alias(name='LogLevel'),
+        alias(name='Timing'),
+        alias(name='TokenUsage')],
+      level=0),
+    ImportFrom(
+      module='smolagents.utils',
+      names=[
+        alias(name='AgentError'),
+        alias(name='make_json_serializable')],
+      level=0),
+    If(
+      test=Name(id='TYPE_CHECKING', ctx=Load()),
+      body=[
+        Import(
+          names=[
+            alias(name='PIL.Image')]),
+        ImportFrom(
+          module='smolagents.models',
+          names=[
+            alias(name='ChatMessage')],
+          level=0),
+        ImportFrom(
+          module='smolagents.monitoring',
+          names=[
+            alias(name='AgentLogger')],
+          level=0)]),
+    Assign(
+      targets=[
+        Name(id='__all__', ctx=Store())],
+      value=List(
+        elts=[
+          Constant(value='AgentMemory')],
+        ctx=Load())),
+    Assign(
+      targets=[
+        Name(id='logger', ctx=Store())],
+      value=Call(
+        func=Name(id='getLogger', ctx=Load()),
+        args=[
+          Name(id='__name__', ctx=Load())])),
+    ClassDef(
+      name='ToolCall',
+      body=[
+        AnnAssign(
+          target=Name(id='name', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='arguments', ctx=Store()),
+          annotation=Name(id='Any', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='id', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        FunctionDef(
+          name='dict',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Dict(
+                keys=[
+                  Constant(value='id'),
+                  Constant(value='type'),
+                  Constant(value='function')],
+                values=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='id',
+                    ctx=Load()),
+                  Constant(value='function'),
+                  Dict(
+                    keys=[
+                      Constant(value='name'),
+                      Constant(value='arguments')],
+                    values=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='name',
+                        ctx=Load()),
+                      Call(
+                        func=Name(id='make_json_serializable', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='arguments',
+                            ctx=Load())])])]))])],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='MemoryStep',
+      body=[
+        FunctionDef(
+          name='dict',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Call(
+                func=Name(id='asdict', ctx=Load()),
+                args=[
+                  Name(id='self', ctx=Load())]))]),
+        FunctionDef(
+          name='to_messages',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='summary_mode',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            Raise(
+              exc=Name(id='NotImplementedError', ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='ChatMessage', ctx=Load()),
+            ctx=Load()))],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='ActionStep',
+      bases=[
+        Name(id='MemoryStep', ctx=Load())],
+      body=[
+        AnnAssign(
+          target=Name(id='step_number', ctx=Store()),
+          annotation=Name(id='int', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='timing', ctx=Store()),
+          annotation=Name(id='Timing', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='model_input_messages', ctx=Store()),
+          annotation=BinOp(
+            left=Subscript(
+              value=Name(id='list', ctx=Load()),
+              slice=Name(id='ChatMessage', ctx=Load()),
+              ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='tool_calls', ctx=Store()),
+          annotation=BinOp(
+            left=Subscript(
+              value=Name(id='list', ctx=Load()),
+              slice=Name(id='ToolCall', ctx=Load()),
+              ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='error', ctx=Store()),
+          annotation=BinOp(
+            left=Name(id='AgentError', ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='model_output_message', ctx=Store()),
+          annotation=BinOp(
+            left=Name(id='ChatMessage', ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='model_output', ctx=Store()),
+          annotation=BinOp(
+            left=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Subscript(
+                value=Name(id='list', ctx=Load()),
+                slice=Subscript(
+                  value=Name(id='dict', ctx=Load()),
+                  slice=Tuple(
+                    elts=[
+                      Name(id='str', ctx=Load()),
+                      Name(id='Any', ctx=Load())],
+                    ctx=Load()),
+                  ctx=Load()),
+                ctx=Load())),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='code_action', ctx=Store()),
+          annotation=BinOp(
+            left=Name(id='str', ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='observations', ctx=Store()),
+          annotation=BinOp(
+            left=Name(id='str', ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='observations_images', ctx=Store()),
+          annotation=BinOp(
+            left=Subscript(
+              value=Name(id='list', ctx=Load()),
+              slice=Constant(value='PIL.Image.Image'),
+              ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='action_output', ctx=Store()),
+          annotation=Name(id='Any', ctx=Load()),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='token_usage', ctx=Store()),
+          annotation=BinOp(
+            left=Name(id='TokenUsage', ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        AnnAssign(
+          target=Name(id='is_final_answer', ctx=Store()),
+          annotation=Name(id='bool', ctx=Load()),
+          value=Constant(value=False),
+          simple=1),
+        FunctionDef(
+          name='dict',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Dict(
+                keys=[
+                  Constant(value='step_number'),
+                  Constant(value='timing'),
+                  Constant(value='model_input_messages'),
+                  Constant(value='tool_calls'),
+                  Constant(value='error'),
+                  Constant(value='model_output_message'),
+                  Constant(value='model_output'),
+                  Constant(value='code_action'),
+                  Constant(value='observations'),
+                  Constant(value='observations_images'),
+                  Constant(value='action_output'),
+                  Constant(value='token_usage'),
+                  Constant(value='is_final_answer')],
+                values=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='step_number',
+                    ctx=Load()),
+                  Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='timing',
+                        ctx=Load()),
+                      attr='dict',
+                      ctx=Load())),
+                  IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='model_input_messages',
+                      ctx=Load()),
+                    body=ListComp(
+                      elt=Call(
+                        func=Name(id='make_json_serializable', ctx=Load()),
+                        args=[
+                          Call(
+                            func=Name(id='get_dict_from_nested_dataclasses', ctx=Load()),
+                            args=[
+                              Name(id='msg', ctx=Load())])]),
+                      generators=[
+                        comprehension(
+                          target=Name(id='msg', ctx=Store()),
+                          iter=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='model_input_messages',
+                            ctx=Load()),
+                          is_async=0)]),
+                    orelse=Constant(value=None)),
+                  IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='tool_calls',
+                      ctx=Load()),
+                    body=ListComp(
+                      elt=Call(
+                        func=Attribute(
+                          value=Name(id='tc', ctx=Load()),
+                          attr='dict',
+                          ctx=Load())),
+                      generators=[
+                        comprehension(
+                          target=Name(id='tc', ctx=Store()),
+                          iter=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='tool_calls',
+                            ctx=Load()),
+                          is_async=0)]),
+                    orelse=List(ctx=Load())),
+                  IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='error',
+                      ctx=Load()),
+                    body=Call(
+                      func=Attribute(
+                        value=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='error',
+                          ctx=Load()),
+                        attr='dict',
+                        ctx=Load())),
+                    orelse=Constant(value=None)),
+                  IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='model_output_message',
+                      ctx=Load()),
+                    body=Call(
+                      func=Name(id='make_json_serializable', ctx=Load()),
+                      args=[
+                        Call(
+                          func=Name(id='get_dict_from_nested_dataclasses', ctx=Load()),
+                          args=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='model_output_message',
+                              ctx=Load())])]),
+                    orelse=Constant(value=None)),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='model_output',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='code_action',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='observations',
+                    ctx=Load()),
+                  IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='observations_images',
+                      ctx=Load()),
+                    body=ListComp(
+                      elt=Call(
+                        func=Attribute(
+                          value=Name(id='image', ctx=Load()),
+                          attr='tobytes',
+                          ctx=Load())),
+                      generators=[
+                        comprehension(
+                          target=Name(id='image', ctx=Store()),
+                          iter=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='observations_images',
+                            ctx=Load()),
+                          is_async=0)]),
+                    orelse=Constant(value=None)),
+                  Call(
+                    func=Name(id='make_json_serializable', ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='action_output',
+                        ctx=Load())]),
+                  IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='token_usage',
+                      ctx=Load()),
+                    body=Call(
+                      func=Name(id='asdict', ctx=Load()),
+                      args=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='token_usage',
+                          ctx=Load())]),
+                    orelse=Constant(value=None)),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='is_final_answer',
+                    ctx=Load())]))]),
+        FunctionDef(
+          name='to_messages',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='summary_mode',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='messages', ctx=Store())],
+              value=List(ctx=Load())),
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Compare(
+                    left=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='model_output',
+                      ctx=Load()),
+                    ops=[
+                      IsNot()],
+                    comparators=[
+                      Constant(value=None)]),
+                  UnaryOp(
+                    op=Not(),
+                    operand=Name(id='summary_mode', ctx=Load()))]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='messages', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='ChatMessage', ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='role',
+                            value=Attribute(
+                              value=Name(id='MessageRole', ctx=Load()),
+                              attr='ASSISTANT',
+                              ctx=Load())),
+                          keyword(
+                            arg='content',
+                            value=List(
+                              elts=[
+                                Dict(
+                                  keys=[
+                                    Constant(value='type'),
+                                    Constant(value='text')],
+                                  values=[
+                                    Constant(value='text'),
+                                    Call(
+                                      func=Attribute(
+                                        value=Attribute(
+                                          value=Name(id='self', ctx=Load()),
+                                          attr='model_output',
+                                          ctx=Load()),
+                                        attr='strip',
+                                        ctx=Load()))])],
+                              ctx=Load()))])]))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='tool_calls',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='messages', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='ChatMessage', ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='role',
+                            value=Attribute(
+                              value=Name(id='MessageRole', ctx=Load()),
+                              attr='TOOL_CALL',
+                              ctx=Load())),
+                          keyword(
+                            arg='content',
+                            value=List(
+                              elts=[
+                                Dict(
+                                  keys=[
+                                    Constant(value='type'),
+                                    Constant(value='text')],
+                                  values=[
+                                    Constant(value='text'),
+                                    BinOp(
+                                      left=Constant(value='Calling tools:\n'),
+                                      op=Add(),
+                                      right=Call(
+                                        func=Name(id='str', ctx=Load()),
+                                        args=[
+                                          ListComp(
+                                            elt=Call(
+                                              func=Attribute(
+                                                value=Name(id='tc', ctx=Load()),
+                                                attr='dict',
+                                                ctx=Load())),
+                                            generators=[
+                                              comprehension(
+                                                target=Name(id='tc', ctx=Store()),
+                                                iter=Attribute(
+                                                  value=Name(id='self', ctx=Load()),
+                                                  attr='tool_calls',
+                                                  ctx=Load()),
+                                                is_async=0)])]))])],
+                              ctx=Load()))])]))]),
+            If(
+              test=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='observations_images',
+                ctx=Load()),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='messages', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='ChatMessage', ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='role',
+                            value=Attribute(
+                              value=Name(id='MessageRole', ctx=Load()),
+                              attr='USER',
+                              ctx=Load())),
+                          keyword(
+                            arg='content',
+                            value=ListComp(
+                              elt=Dict(
+                                keys=[
+                                  Constant(value='type'),
+                                  Constant(value='image')],
+                                values=[
+                                  Constant(value='image'),
+                                  Name(id='image', ctx=Load())]),
+                              generators=[
+                                comprehension(
+                                  target=Name(id='image', ctx=Store()),
+                                  iter=Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='observations_images',
+                                    ctx=Load()),
+                                  is_async=0)]))])]))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='observations',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='messages', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='ChatMessage', ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='role',
+                            value=Attribute(
+                              value=Name(id='MessageRole', ctx=Load()),
+                              attr='TOOL_RESPONSE',
+                              ctx=Load())),
+                          keyword(
+                            arg='content',
+                            value=List(
+                              elts=[
+                                Dict(
+                                  keys=[
+                                    Constant(value='type'),
+                                    Constant(value='text')],
+                                  values=[
+                                    Constant(value='text'),
+                                    JoinedStr(
+                                      values=[
+                                        Constant(value='Observation:\n'),
+                                        FormattedValue(
+                                          value=Attribute(
+                                            value=Name(id='self', ctx=Load()),
+                                            attr='observations',
+                                            ctx=Load()),
+                                          conversion=-1)])])],
+                              ctx=Load()))])]))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='error',
+                  ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='error_message', ctx=Store())],
+                  value=BinOp(
+                    left=BinOp(
+                      left=Constant(value='Error:\n'),
+                      op=Add(),
+                      right=Call(
+                        func=Name(id='str', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='error',
+                            ctx=Load())])),
+                    op=Add(),
+                    right=Constant(value="\nNow let's retry: take care not to repeat previous errors! If you have retried several times, try a completely different approach.\n"))),
+                Assign(
+                  targets=[
+                    Name(id='message_content', ctx=Store())],
+                  value=IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='tool_calls',
+                      ctx=Load()),
+                    body=JoinedStr(
+                      values=[
+                        Constant(value='Call id: '),
+                        FormattedValue(
+                          value=Attribute(
+                            value=Subscript(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='tool_calls',
+                                ctx=Load()),
+                              slice=Constant(value=0),
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          conversion=-1),
+                        Constant(value='\n')]),
+                    orelse=Constant(value=''))),
+                AugAssign(
+                  target=Name(id='message_content', ctx=Store()),
+                  op=Add(),
+                  value=Name(id='error_message', ctx=Load())),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='messages', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='ChatMessage', ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='role',
+                            value=Attribute(
+                              value=Name(id='MessageRole', ctx=Load()),
+                              attr='TOOL_RESPONSE',
+                              ctx=Load())),
+                          keyword(
+                            arg='content',
+                            value=List(
+                              elts=[
+                                Dict(
+                                  keys=[
+                                    Constant(value='type'),
+                                    Constant(value='text')],
+                                  values=[
+                                    Constant(value='text'),
+                                    Name(id='message_content', ctx=Load())])],
+                              ctx=Load()))])]))]),
+            Return(
+              value=Name(id='messages', ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='ChatMessage', ctx=Load()),
+            ctx=Load()))],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='PlanningStep',
+      bases=[
+        Name(id='MemoryStep', ctx=Load())],
+      body=[
+        AnnAssign(
+          target=Name(id='model_input_messages', ctx=Store()),
+          annotation=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='ChatMessage', ctx=Load()),
+            ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='model_output_message', ctx=Store()),
+          annotation=Name(id='ChatMessage', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='plan', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='timing', ctx=Store()),
+          annotation=Name(id='Timing', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='token_usage', ctx=Store()),
+          annotation=BinOp(
+            left=Name(id='TokenUsage', ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        FunctionDef(
+          name='dict',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Return(
+              value=Dict(
+                keys=[
+                  Constant(value='model_input_messages'),
+                  Constant(value='model_output_message'),
+                  Constant(value='plan'),
+                  Constant(value='timing'),
+                  Constant(value='token_usage')],
+                values=[
+                  ListComp(
+                    elt=Call(
+                      func=Name(id='make_json_serializable', ctx=Load()),
+                      args=[
+                        Call(
+                          func=Name(id='get_dict_from_nested_dataclasses', ctx=Load()),
+                          args=[
+                            Name(id='msg', ctx=Load())])]),
+                    generators=[
+                      comprehension(
+                        target=Name(id='msg', ctx=Store()),
+                        iter=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='model_input_messages',
+                          ctx=Load()),
+                        is_async=0)]),
+                  Call(
+                    func=Name(id='make_json_serializable', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='get_dict_from_nested_dataclasses', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='model_output_message',
+                            ctx=Load())])]),
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='plan',
+                    ctx=Load()),
+                  Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='timing',
+                        ctx=Load()),
+                      attr='dict',
+                      ctx=Load())),
+                  IfExp(
+                    test=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='token_usage',
+                      ctx=Load()),
+                    body=Call(
+                      func=Name(id='asdict', ctx=Load()),
+                      args=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='token_usage',
+                          ctx=Load())]),
+                    orelse=Constant(value=None))]))]),
+        FunctionDef(
+          name='to_messages',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='summary_mode',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            If(
+              test=Name(id='summary_mode', ctx=Load()),
+              body=[
+                Return(
+                  value=List(ctx=Load()))]),
+            Return(
+              value=List(
+                elts=[
+                  Call(
+                    func=Name(id='ChatMessage', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='role',
+                        value=Attribute(
+                          value=Name(id='MessageRole', ctx=Load()),
+                          attr='ASSISTANT',
+                          ctx=Load())),
+                      keyword(
+                        arg='content',
+                        value=List(
+                          elts=[
+                            Dict(
+                              keys=[
+                                Constant(value='type'),
+                                Constant(value='text')],
+                              values=[
+                                Constant(value='text'),
+                                Call(
+                                  func=Attribute(
+                                    value=Attribute(
+                                      value=Name(id='self', ctx=Load()),
+                                      attr='plan',
+                                      ctx=Load()),
+                                    attr='strip',
+                                    ctx=Load()))])],
+                          ctx=Load()))]),
+                  Call(
+                    func=Name(id='ChatMessage', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='role',
+                        value=Attribute(
+                          value=Name(id='MessageRole', ctx=Load()),
+                          attr='USER',
+                          ctx=Load())),
+                      keyword(
+                        arg='content',
+                        value=List(
+                          elts=[
+                            Dict(
+                              keys=[
+                                Constant(value='type'),
+                                Constant(value='text')],
+                              values=[
+                                Constant(value='text'),
+                                Constant(value='Now proceed and carry out this plan.')])],
+                          ctx=Load()))])],
+                ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='ChatMessage', ctx=Load()),
+            ctx=Load()))],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='TaskStep',
+      bases=[
+        Name(id='MemoryStep', ctx=Load())],
+      body=[
+        AnnAssign(
+          target=Name(id='task', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='task_images', ctx=Store()),
+          annotation=BinOp(
+            left=Subscript(
+              value=Name(id='list', ctx=Load()),
+              slice=Constant(value='PIL.Image.Image'),
+              ctx=Load()),
+            op=BitOr(),
+            right=Constant(value=None)),
+          value=Constant(value=None),
+          simple=1),
+        FunctionDef(
+          name='to_messages',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='summary_mode',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='content', ctx=Store())],
+              value=List(
+                elts=[
+                  Dict(
+                    keys=[
+                      Constant(value='type'),
+                      Constant(value='text')],
+                    values=[
+                      Constant(value='text'),
+                      JoinedStr(
+                        values=[
+                          Constant(value='New task:\n'),
+                          FormattedValue(
+                            value=Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='task',
+                              ctx=Load()),
+                            conversion=-1)])])],
+                ctx=Load())),
+            If(
+              test=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='task_images',
+                ctx=Load()),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='content', ctx=Load()),
+                      attr='extend',
+                      ctx=Load()),
+                    args=[
+                      ListComp(
+                        elt=Dict(
+                          keys=[
+                            Constant(value='type'),
+                            Constant(value='image')],
+                          values=[
+                            Constant(value='image'),
+                            Name(id='image', ctx=Load())]),
+                        generators=[
+                          comprehension(
+                            target=Name(id='image', ctx=Store()),
+                            iter=Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='task_images',
+                              ctx=Load()),
+                            is_async=0)])]))]),
+            Return(
+              value=List(
+                elts=[
+                  Call(
+                    func=Name(id='ChatMessage', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='role',
+                        value=Attribute(
+                          value=Name(id='MessageRole', ctx=Load()),
+                          attr='USER',
+                          ctx=Load())),
+                      keyword(
+                        arg='content',
+                        value=Name(id='content', ctx=Load()))])],
+                ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='ChatMessage', ctx=Load()),
+            ctx=Load()))],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='SystemPromptStep',
+      bases=[
+        Name(id='MemoryStep', ctx=Load())],
+      body=[
+        AnnAssign(
+          target=Name(id='system_prompt', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        FunctionDef(
+          name='to_messages',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='summary_mode',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            If(
+              test=Name(id='summary_mode', ctx=Load()),
+              body=[
+                Return(
+                  value=List(ctx=Load()))]),
+            Return(
+              value=List(
+                elts=[
+                  Call(
+                    func=Name(id='ChatMessage', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='role',
+                        value=Attribute(
+                          value=Name(id='MessageRole', ctx=Load()),
+                          attr='SYSTEM',
+                          ctx=Load())),
+                      keyword(
+                        arg='content',
+                        value=List(
+                          elts=[
+                            Dict(
+                              keys=[
+                                Constant(value='type'),
+                                Constant(value='text')],
+                              values=[
+                                Constant(value='text'),
+                                Attribute(
+                                  value=Name(id='self', ctx=Load()),
+                                  attr='system_prompt',
+                                  ctx=Load())])],
+                          ctx=Load()))])],
+                ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='ChatMessage', ctx=Load()),
+            ctx=Load()))],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='FinalAnswerStep',
+      bases=[
+        Name(id='MemoryStep', ctx=Load())],
+      body=[
+        AnnAssign(
+          target=Name(id='output', ctx=Store()),
+          annotation=Name(id='Any', ctx=Load()),
+          simple=1)],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='AgentMemory',
+      body=[
+        Expr(
+          value=Constant(value="Memory for the agent, containing the system prompt and all steps taken by the agent.\n\n    This class is used to store the agent's steps, including tasks, actions, and planning steps.\n    It allows for resetting the memory, retrieving succinct or full step information, and replaying the agent's steps.\n\n    Args:\n        system_prompt (`str`): System prompt for the agent, which sets the context and instructions for the agent's behavior.\n\n    **Attributes**:\n        - **system_prompt** (`SystemPromptStep`) -- System prompt step for the agent.\n        - **steps** (`list[TaskStep | ActionStep | PlanningStep]`) -- List of steps taken by the agent, which can include tasks, actions, and planning steps.\n    ")),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='system_prompt',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            AnnAssign(
+              target=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='system_prompt',
+                ctx=Store()),
+              annotation=Name(id='SystemPromptStep', ctx=Load()),
+              value=Call(
+                func=Name(id='SystemPromptStep', ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='system_prompt',
+                    value=Name(id='system_prompt', ctx=Load()))]),
+              simple=0),
+            AnnAssign(
+              target=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='steps',
+                ctx=Store()),
+              annotation=Subscript(
+                value=Name(id='list', ctx=Load()),
+                slice=BinOp(
+                  left=BinOp(
+                    left=Name(id='TaskStep', ctx=Load()),
+                    op=BitOr(),
+                    right=Name(id='ActionStep', ctx=Load())),
+                  op=BitOr(),
+                  right=Name(id='PlanningStep', ctx=Load())),
+                ctx=Load()),
+              value=List(ctx=Load()),
+              simple=0)]),
+        FunctionDef(
+          name='reset',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value="Reset the agent's memory, clearing all steps and keeping the system prompt.")),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='steps',
+                  ctx=Store())],
+              value=List(ctx=Load()))]),
+        FunctionDef(
+          name='get_succinct_steps',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value="Return a succinct representation of the agent's steps, excluding model input messages.")),
+            Return(
+              value=ListComp(
+                elt=DictComp(
+                  key=Name(id='key', ctx=Load()),
+                  value=Name(id='value', ctx=Load()),
+                  generators=[
+                    comprehension(
+                      target=Tuple(
+                        elts=[
+                          Name(id='key', ctx=Store()),
+                          Name(id='value', ctx=Store())],
+                        ctx=Store()),
+                      iter=Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='step', ctx=Load()),
+                              attr='dict',
+                              ctx=Load())),
+                          attr='items',
+                          ctx=Load())),
+                      ifs=[
+                        Compare(
+                          left=Name(id='key', ctx=Load()),
+                          ops=[
+                            NotEq()],
+                          comparators=[
+                            Constant(value='model_input_messages')])],
+                      is_async=0)]),
+                generators=[
+                  comprehension(
+                    target=Name(id='step', ctx=Store()),
+                    iter=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='steps',
+                      ctx=Load()),
+                    is_async=0)]))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='dict', ctx=Load()),
+            ctx=Load())),
+        FunctionDef(
+          name='get_full_steps',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value="Return a full representation of the agent's steps, including model input messages.")),
+            If(
+              test=Compare(
+                left=Call(
+                  func=Name(id='len', ctx=Load()),
+                  args=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='steps',
+                      ctx=Load())]),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value=0)]),
+              body=[
+                Return(
+                  value=List(ctx=Load()))]),
+            Return(
+              value=ListComp(
+                elt=Call(
+                  func=Attribute(
+                    value=Name(id='step', ctx=Load()),
+                    attr='dict',
+                    ctx=Load())),
+                generators=[
+                  comprehension(
+                    target=Name(id='step', ctx=Store()),
+                    iter=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='steps',
+                      ctx=Load()),
+                    is_async=0)]))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='dict', ctx=Load()),
+            ctx=Load())),
+        FunctionDef(
+          name='replay',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='logger',
+                annotation=Name(id='AgentLogger', ctx=Load())),
+              arg(
+                arg='detailed',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            Expr(
+              value=Constant(value="Prints a pretty replay of the agent's steps.\n\n        Args:\n            logger (`AgentLogger`): The logger to print replay logs to.\n            detailed (`bool`, default `False`): If True, also displays the memory at each step. Defaults to False.\n                Careful: will increase log length exponentially. Use only for debugging.\n        ")),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='logger', ctx=Load()),
+                    attr='console',
+                    ctx=Load()),
+                  attr='log',
+                  ctx=Load()),
+                args=[
+                  Constant(value="Replaying the agent's steps:")])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='logger', ctx=Load()),
+                  attr='log_markdown',
+                  ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='title',
+                    value=Constant(value='System prompt')),
+                  keyword(
+                    arg='content',
+                    value=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='system_prompt',
+                        ctx=Load()),
+                      attr='system_prompt',
+                      ctx=Load())),
+                  keyword(
+                    arg='level',
+                    value=Attribute(
+                      value=Name(id='LogLevel', ctx=Load()),
+                      attr='ERROR',
+                      ctx=Load()))])),
+            For(
+              target=Name(id='step', ctx=Store()),
+              iter=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='steps',
+                ctx=Load()),
+              body=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='step', ctx=Load()),
+                      Name(id='TaskStep', ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='logger', ctx=Load()),
+                          attr='log_task',
+                          ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='step', ctx=Load()),
+                            attr='task',
+                            ctx=Load()),
+                          Constant(value='')],
+                        keywords=[
+                          keyword(
+                            arg='level',
+                            value=Attribute(
+                              value=Name(id='LogLevel', ctx=Load()),
+                              attr='ERROR',
+                              ctx=Load()))]))],
+                  orelse=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Name(id='step', ctx=Load()),
+                          Name(id='ActionStep', ctx=Load())]),
+                      body=[
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='logger', ctx=Load()),
+                              attr='log_rule',
+                              ctx=Load()),
+                            args=[
+                              JoinedStr(
+                                values=[
+                                  Constant(value='Step '),
+                                  FormattedValue(
+                                    value=Attribute(
+                                      value=Name(id='step', ctx=Load()),
+                                      attr='step_number',
+                                      ctx=Load()),
+                                    conversion=-1)])],
+                            keywords=[
+                              keyword(
+                                arg='level',
+                                value=Attribute(
+                                  value=Name(id='LogLevel', ctx=Load()),
+                                  attr='ERROR',
+                                  ctx=Load()))])),
+                        If(
+                          test=BoolOp(
+                            op=And(),
+                            values=[
+                              Name(id='detailed', ctx=Load()),
+                              Compare(
+                                left=Attribute(
+                                  value=Name(id='step', ctx=Load()),
+                                  attr='model_input_messages',
+                                  ctx=Load()),
+                                ops=[
+                                  IsNot()],
+                                comparators=[
+                                  Constant(value=None)])]),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='logger', ctx=Load()),
+                                  attr='log_messages',
+                                  ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Name(id='step', ctx=Load()),
+                                    attr='model_input_messages',
+                                    ctx=Load())],
+                                keywords=[
+                                  keyword(
+                                    arg='level',
+                                    value=Attribute(
+                                      value=Name(id='LogLevel', ctx=Load()),
+                                      attr='ERROR',
+                                      ctx=Load()))]))]),
+                        If(
+                          test=Compare(
+                            left=Attribute(
+                              value=Name(id='step', ctx=Load()),
+                              attr='model_output',
+                              ctx=Load()),
+                            ops=[
+                              IsNot()],
+                            comparators=[
+                              Constant(value=None)]),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='logger', ctx=Load()),
+                                  attr='log_markdown',
+                                  ctx=Load()),
+                                keywords=[
+                                  keyword(
+                                    arg='title',
+                                    value=Constant(value='Agent output:')),
+                                  keyword(
+                                    arg='content',
+                                    value=Attribute(
+                                      value=Name(id='step', ctx=Load()),
+                                      attr='model_output',
+                                      ctx=Load())),
+                                  keyword(
+                                    arg='level',
+                                    value=Attribute(
+                                      value=Name(id='LogLevel', ctx=Load()),
+                                      attr='ERROR',
+                                      ctx=Load()))]))])],
+                      orelse=[
+                        If(
+                          test=Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Name(id='step', ctx=Load()),
+                              Name(id='PlanningStep', ctx=Load())]),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='logger', ctx=Load()),
+                                  attr='log_rule',
+                                  ctx=Load()),
+                                args=[
+                                  Constant(value='Planning step')],
+                                keywords=[
+                                  keyword(
+                                    arg='level',
+                                    value=Attribute(
+                                      value=Name(id='LogLevel', ctx=Load()),
+                                      attr='ERROR',
+                                      ctx=Load()))])),
+                            If(
+                              test=BoolOp(
+                                op=And(),
+                                values=[
+                                  Name(id='detailed', ctx=Load()),
+                                  Compare(
+                                    left=Attribute(
+                                      value=Name(id='step', ctx=Load()),
+                                      attr='model_input_messages',
+                                      ctx=Load()),
+                                    ops=[
+                                      IsNot()],
+                                    comparators=[
+                                      Constant(value=None)])]),
+                              body=[
+                                Expr(
+                                  value=Call(
+                                    func=Attribute(
+                                      value=Name(id='logger', ctx=Load()),
+                                      attr='log_messages',
+                                      ctx=Load()),
+                                    args=[
+                                      Attribute(
+                                        value=Name(id='step', ctx=Load()),
+                                        attr='model_input_messages',
+                                        ctx=Load())],
+                                    keywords=[
+                                      keyword(
+                                        arg='level',
+                                        value=Attribute(
+                                          value=Name(id='LogLevel', ctx=Load()),
+                                          attr='ERROR',
+                                          ctx=Load()))]))]),
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Name(id='logger', ctx=Load()),
+                                  attr='log_markdown',
+                                  ctx=Load()),
+                                keywords=[
+                                  keyword(
+                                    arg='title',
+                                    value=Constant(value='Agent output:')),
+                                  keyword(
+                                    arg='content',
+                                    value=Attribute(
+                                      value=Name(id='step', ctx=Load()),
+                                      attr='plan',
+                                      ctx=Load())),
+                                  keyword(
+                                    arg='level',
+                                    value=Attribute(
+                                      value=Name(id='LogLevel', ctx=Load()),
+                                      attr='ERROR',
+                                      ctx=Load()))]))])])])])]),
+        FunctionDef(
+          name='return_full_code',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value="Returns all code actions from the agent's steps, concatenated as a single script.")),
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Constant(value='\n\n'),
+                  attr='join',
+                  ctx=Load()),
+                args=[
+                  ListComp(
+                    elt=Attribute(
+                      value=Name(id='step', ctx=Load()),
+                      attr='code_action',
+                      ctx=Load()),
+                    generators=[
+                      comprehension(
+                        target=Name(id='step', ctx=Store()),
+                        iter=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='steps',
+                          ctx=Load()),
+                        ifs=[
+                          BoolOp(
+                            op=And(),
+                            values=[
+                              Call(
+                                func=Name(id='isinstance', ctx=Load()),
+                                args=[
+                                  Name(id='step', ctx=Load()),
+                                  Name(id='ActionStep', ctx=Load())]),
+                              Compare(
+                                left=Attribute(
+                                  value=Name(id='step', ctx=Load()),
+                                  attr='code_action',
+                                  ctx=Load()),
+                                ops=[
+                                  IsNot()],
+                                comparators=[
+                                  Constant(value=None)])])],
+                        is_async=0)])]))],
+          returns=Name(id='str', ctx=Load()))]),
+    ClassDef(
+      name='CallbackRegistry',
+      body=[
+        Expr(
+          value=Constant(value="Registry for callbacks that are called at each step of the agent's execution.\n\n    Callbacks are registered by passing a step class and a callback function.\n    ")),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            AnnAssign(
+              target=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='_callbacks',
+                ctx=Store()),
+              annotation=Subscript(
+                value=Name(id='dict', ctx=Load()),
+                slice=Tuple(
+                  elts=[
+                    Subscript(
+                      value=Name(id='Type', ctx=Load()),
+                      slice=Name(id='MemoryStep', ctx=Load()),
+                      ctx=Load()),
+                    Subscript(
+                      value=Name(id='list', ctx=Load()),
+                      slice=Name(id='Callable', ctx=Load()),
+                      ctx=Load())],
+                  ctx=Load()),
+                ctx=Load()),
+              value=Dict(),
+              simple=0)]),
+        FunctionDef(
+          name='register',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='step_cls',
+                annotation=Subscript(
+                  value=Name(id='Type', ctx=Load()),
+                  slice=Name(id='MemoryStep', ctx=Load()),
+                  ctx=Load())),
+              arg(
+                arg='callback',
+                annotation=Name(id='Callable', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='Register a callback for a step class.\n\n        Args:\n            step_cls (Type[MemoryStep]): Step class to register the callback for.\n            callback (Callable): Callback function to register.\n        ')),
+            If(
+              test=Compare(
+                left=Name(id='step_cls', ctx=Load()),
+                ops=[
+                  NotIn()],
+                comparators=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_callbacks',
+                    ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_callbacks',
+                        ctx=Load()),
+                      slice=Name(id='step_cls', ctx=Load()),
+                      ctx=Store())],
+                  value=List(ctx=Load()))]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Subscript(
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_callbacks',
+                      ctx=Load()),
+                    slice=Name(id='step_cls', ctx=Load()),
+                    ctx=Load()),
+                  attr='append',
+                  ctx=Load()),
+                args=[
+                  Name(id='callback', ctx=Load())]))]),
+        FunctionDef(
+          name='callback',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='memory_step')],
+            kwarg=arg(arg='kwargs')),
+          body=[
+            Expr(
+              value=Constant(value='Call callbacks registered for a step type.\n\n        Args:\n            memory_step (MemoryStep): Step to call the callbacks for.\n            **kwargs: Additional arguments to pass to callbacks that accept them.\n                Typically, includes the agent instance.\n\n        Notes:\n            For backwards compatibility, callbacks with a single parameter signature\n            receive only the memory_step, while callbacks with multiple parameters\n            receive both the memory_step and any additional kwargs.\n        ')),
+            For(
+              target=Name(id='cls', ctx=Store()),
+              iter=Attribute(
+                value=Attribute(
+                  value=Name(id='memory_step', ctx=Load()),
+                  attr='__class__',
+                  ctx=Load()),
+                attr='__mro__',
+                ctx=Load()),
+              body=[
+                For(
+                  target=Name(id='cb', ctx=Store()),
+                  iter=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='_callbacks',
+                        ctx=Load()),
+                      attr='get',
+                      ctx=Load()),
+                    args=[
+                      Name(id='cls', ctx=Load()),
+                      List(ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=IfExp(
+                        test=Compare(
+                          left=Call(
+                            func=Name(id='len', ctx=Load()),
+                            args=[
+                              Attribute(
+                                value=Call(
+                                  func=Attribute(
+                                    value=Name(id='inspect', ctx=Load()),
+                                    attr='signature',
+                                    ctx=Load()),
+                                  args=[
+                                    Name(id='cb', ctx=Load())]),
+                                attr='parameters',
+                                ctx=Load())]),
+                          ops=[
+                            Eq()],
+                          comparators=[
+                            Constant(value=1)]),
+                        body=Call(
+                          func=Name(id='cb', ctx=Load()),
+                          args=[
+                            Name(id='memory_step', ctx=Load())]),
+                        orelse=Call(
+                          func=Name(id='cb', ctx=Load()),
+                          args=[
+                            Name(id='memory_step', ctx=Load())],
+                          keywords=[
+                            keyword(
+                              value=Name(id='kwargs', ctx=Load()))])))])])])])])

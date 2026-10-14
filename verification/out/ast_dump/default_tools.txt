@@ -1,0 +1,3367 @@
+Module(
+  body=[
+    ImportFrom(
+      module='dataclasses',
+      names=[
+        alias(name='dataclass')],
+      level=0),
+    ImportFrom(
+      module='typing',
+      names=[
+        alias(name='Any')],
+      level=0),
+    ImportFrom(
+      module='local_python_executor',
+      names=[
+        alias(name='BASE_BUILTIN_MODULES'),
+        alias(name='BASE_PYTHON_TOOLS'),
+        alias(name='MAX_EXECUTION_TIME_SECONDS'),
+        alias(name='evaluate_python_code')],
+      level=1),
+    ImportFrom(
+      module='tools',
+      names=[
+        alias(name='PipelineTool'),
+        alias(name='Tool')],
+      level=1),
+    ClassDef(
+      name='PreTool',
+      body=[
+        AnnAssign(
+          target=Name(id='name', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='inputs', ctx=Store()),
+          annotation=Subscript(
+            value=Name(id='dict', ctx=Load()),
+            slice=Tuple(
+              elts=[
+                Name(id='str', ctx=Load()),
+                Name(id='str', ctx=Load())],
+              ctx=Load()),
+            ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='output_type', ctx=Store()),
+          annotation=Name(id='type', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='task', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='description', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1),
+        AnnAssign(
+          target=Name(id='repo_id', ctx=Store()),
+          annotation=Name(id='str', ctx=Load()),
+          simple=1)],
+      decorator_list=[
+        Name(id='dataclass', ctx=Load())]),
+    ClassDef(
+      name='PythonInterpreterTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='python_interpreter')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='This is a tool that evaluates python code. It can be used to perform calculations.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='code')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The python code to run in interpreter')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self')],
+            vararg=arg(arg='args'),
+            kwonlyargs=[
+              arg(arg='authorized_imports'),
+              arg(arg='timeout_seconds')],
+            kw_defaults=[
+              Constant(value=None),
+              Name(id='MAX_EXECUTION_TIME_SECONDS', ctx=Load())],
+            kwarg=arg(arg='kwargs')),
+          body=[
+            If(
+              test=Compare(
+                left=Name(id='authorized_imports', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='authorized_imports',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='list', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='set', ctx=Load()),
+                        args=[
+                          Name(id='BASE_BUILTIN_MODULES', ctx=Load())])]))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='authorized_imports',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='list', ctx=Load()),
+                    args=[
+                      BinOp(
+                        left=Call(
+                          func=Name(id='set', ctx=Load()),
+                          args=[
+                            Name(id='BASE_BUILTIN_MODULES', ctx=Load())]),
+                        op=BitOr(),
+                        right=Call(
+                          func=Name(id='set', ctx=Load()),
+                          args=[
+                            Name(id='authorized_imports', ctx=Load())]))]))]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='inputs',
+                  ctx=Store())],
+              value=Dict(
+                keys=[
+                  Constant(value='code')],
+                values=[
+                  Dict(
+                    keys=[
+                      Constant(value='type'),
+                      Constant(value='description')],
+                    values=[
+                      Constant(value='string'),
+                      JoinedStr(
+                        values=[
+                          Constant(value='The code snippet to evaluate. All variables used in this snippet must be defined in this same snippet, else you will get an error. This code can only import the following python libraries: '),
+                          FormattedValue(
+                            value=Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='authorized_imports',
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value='.')])])])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='base_python_tools',
+                  ctx=Store())],
+              value=Name(id='BASE_PYTHON_TOOLS', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='python_evaluator',
+                  ctx=Store())],
+              value=Name(id='evaluate_python_code', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='timeout_seconds',
+                  ctx=Store())],
+              value=Name(id='timeout_seconds', ctx=Load())),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()),
+                args=[
+                  Starred(
+                    value=Name(id='args', ctx=Load()),
+                    ctx=Load())],
+                keywords=[
+                  keyword(
+                    value=Name(id='kwargs', ctx=Load()))]))]),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='code',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='state', ctx=Store())],
+              value=Dict()),
+            Assign(
+              targets=[
+                Name(id='output', ctx=Store())],
+              value=Call(
+                func=Name(id='str', ctx=Load()),
+                args=[
+                  Subscript(
+                    value=Call(
+                      func=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='python_evaluator',
+                        ctx=Load()),
+                      args=[
+                        Name(id='code', ctx=Load())],
+                      keywords=[
+                        keyword(
+                          arg='state',
+                          value=Name(id='state', ctx=Load())),
+                        keyword(
+                          arg='static_tools',
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='base_python_tools',
+                            ctx=Load())),
+                        keyword(
+                          arg='authorized_imports',
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='authorized_imports',
+                            ctx=Load())),
+                        keyword(
+                          arg='timeout_seconds',
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='timeout_seconds',
+                            ctx=Load()))]),
+                    slice=Constant(value=0),
+                    ctx=Load())])),
+            Return(
+              value=JoinedStr(
+                values=[
+                  Constant(value='Stdout:\n'),
+                  FormattedValue(
+                    value=Call(
+                      func=Name(id='str', ctx=Load()),
+                      args=[
+                        Subscript(
+                          value=Name(id='state', ctx=Load()),
+                          slice=Constant(value='_print_outputs'),
+                          ctx=Load())]),
+                    conversion=-1),
+                  Constant(value='\nOutput: '),
+                  FormattedValue(
+                    value=Name(id='output', ctx=Load()),
+                    conversion=-1)]))],
+          returns=Name(id='str', ctx=Load()))]),
+    ClassDef(
+      name='FinalAnswerTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='final_answer')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='Provides a final answer to the given problem.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='answer')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='any'),
+                  Constant(value='The final answer to the problem')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='any')),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='answer',
+                annotation=Name(id='Any', ctx=Load()))]),
+          body=[
+            Return(
+              value=Name(id='answer', ctx=Load()))],
+          returns=Name(id='Any', ctx=Load()))]),
+    ClassDef(
+      name='UserInputTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='user_input')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value="Asks for user's input on a specific question")),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='question')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The question to ask the user')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='question')]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='user_input', ctx=Store())],
+              value=Call(
+                func=Name(id='input', ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      FormattedValue(
+                        value=Name(id='question', ctx=Load()),
+                        conversion=-1),
+                      Constant(value=' => Type your answer here:')])])),
+            Return(
+              value=Name(id='user_input', ctx=Load()))])]),
+    ClassDef(
+      name='DuckDuckGoSearchTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='Web search tool that performs searches using the DuckDuckGo search engine.\n\n    Args:\n        max_results (`int`, default `10`): Maximum number of search results to return.\n        rate_limit (`float`, default `1.0`): Maximum queries per second. Set to `None` to disable rate limiting.\n        **kwargs: Additional keyword arguments for the `DDGS` client.\n\n    Examples:\n        ```python\n        >>> from smolagents import DuckDuckGoSearchTool\n        >>> web_search_tool = DuckDuckGoSearchTool(max_results=5, rate_limit=2.0)\n        >>> results = web_search_tool("Hugging Face")\n        >>> print(results)\n        ```\n    ')),
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='web_search')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='Performs a duckduckgo web search based on your query (think a Google search) then returns the top search results.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='query')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The search query to perform.')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='max_results',
+                annotation=Name(id='int', ctx=Load())),
+              arg(
+                arg='rate_limit',
+                annotation=BinOp(
+                  left=Name(id='float', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))],
+            kwarg=arg(arg='kwargs'),
+            defaults=[
+              Constant(value=10),
+              Constant(value=1.0)]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='max_results',
+                  ctx=Store())],
+              value=Name(id='max_results', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='rate_limit',
+                  ctx=Store())],
+              value=Name(id='rate_limit', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_min_interval',
+                  ctx=Store())],
+              value=IfExp(
+                test=Name(id='rate_limit', ctx=Load()),
+                body=BinOp(
+                  left=Constant(value=1.0),
+                  op=Div(),
+                  right=Name(id='rate_limit', ctx=Load())),
+                orelse=Constant(value=0.0))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_last_request_time',
+                  ctx=Store())],
+              value=Constant(value=0.0)),
+            Try(
+              body=[
+                ImportFrom(
+                  module='ddgs',
+                  names=[
+                    alias(name='DDGS')],
+                  level=0)],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='ImportError', ctx=Load()),
+                  name='e',
+                  body=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='ImportError', ctx=Load()),
+                        args=[
+                          Constant(value='You must install package `ddgs` to run this tool: for instance run `pip install ddgs`.')]),
+                      cause=Name(id='e', ctx=Load()))])]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='ddgs',
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='DDGS', ctx=Load()),
+                keywords=[
+                  keyword(
+                    value=Name(id='kwargs', ctx=Load()))]))]),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_enforce_rate_limit',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='results', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='ddgs',
+                    ctx=Load()),
+                  attr='text',
+                  ctx=Load()),
+                args=[
+                  Name(id='query', ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='max_results',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='max_results',
+                      ctx=Load()))])),
+            If(
+              test=Compare(
+                left=Call(
+                  func=Name(id='len', ctx=Load()),
+                  args=[
+                    Name(id='results', ctx=Load())]),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value=0)]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='Exception', ctx=Load()),
+                    args=[
+                      Constant(value='No results found! Try a less restrictive/shorter query.')]))]),
+            Assign(
+              targets=[
+                Name(id='postprocessed_results', ctx=Store())],
+              value=ListComp(
+                elt=JoinedStr(
+                  values=[
+                    Constant(value='['),
+                    FormattedValue(
+                      value=Subscript(
+                        value=Name(id='result', ctx=Load()),
+                        slice=Constant(value='title'),
+                        ctx=Load()),
+                      conversion=-1),
+                    Constant(value=']('),
+                    FormattedValue(
+                      value=Subscript(
+                        value=Name(id='result', ctx=Load()),
+                        slice=Constant(value='href'),
+                        ctx=Load()),
+                      conversion=-1),
+                    Constant(value=')\n'),
+                    FormattedValue(
+                      value=Subscript(
+                        value=Name(id='result', ctx=Load()),
+                        slice=Constant(value='body'),
+                        ctx=Load()),
+                      conversion=-1)]),
+                generators=[
+                  comprehension(
+                    target=Name(id='result', ctx=Store()),
+                    iter=Name(id='results', ctx=Load()),
+                    is_async=0)])),
+            Return(
+              value=BinOp(
+                left=Constant(value='## Search Results\n\n'),
+                op=Add(),
+                right=Call(
+                  func=Attribute(
+                    value=Constant(value='\n\n'),
+                    attr='join',
+                    ctx=Load()),
+                  args=[
+                    Name(id='postprocessed_results', ctx=Load())])))],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='_enforce_rate_limit',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Import(
+              names=[
+                alias(name='time')]),
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='rate_limit',
+                  ctx=Load())),
+              body=[
+                Return()]),
+            Assign(
+              targets=[
+                Name(id='now', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='time', ctx=Load()),
+                  attr='time',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='elapsed', ctx=Store())],
+              value=BinOp(
+                left=Name(id='now', ctx=Load()),
+                op=Sub(),
+                right=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_last_request_time',
+                  ctx=Load()))),
+            If(
+              test=Compare(
+                left=Name(id='elapsed', ctx=Load()),
+                ops=[
+                  Lt()],
+                comparators=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_min_interval',
+                    ctx=Load())]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='time', ctx=Load()),
+                      attr='sleep',
+                      ctx=Load()),
+                    args=[
+                      BinOp(
+                        left=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_min_interval',
+                          ctx=Load()),
+                        op=Sub(),
+                        right=Name(id='elapsed', ctx=Load()))]))]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_last_request_time',
+                  ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='time', ctx=Load()),
+                  attr='time',
+                  ctx=Load())))],
+          returns=Constant(value=None))]),
+    ClassDef(
+      name='GoogleSearchTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='web_search')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='Performs a google web search for your query then returns a string of the top search results.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='query'),
+              Constant(value='filter_year')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The search query to perform.')]),
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description'),
+                  Constant(value='nullable')],
+                values=[
+                  Constant(value='integer'),
+                  Constant(value='Optionally restrict results to a certain year'),
+                  Constant(value=True)])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='provider',
+                annotation=Name(id='str', ctx=Load()))],
+            defaults=[
+              Constant(value='serpapi')]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()))),
+            Import(
+              names=[
+                alias(name='os')]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='provider',
+                  ctx=Store())],
+              value=Name(id='provider', ctx=Load())),
+            If(
+              test=Compare(
+                left=Name(id='provider', ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='serpapi')]),
+              body=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='organic_key',
+                      ctx=Store())],
+                  value=Constant(value='organic_results')),
+                Assign(
+                  targets=[
+                    Name(id='api_key_env_name', ctx=Store())],
+                  value=Constant(value='SERPAPI_API_KEY'))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='organic_key',
+                      ctx=Store())],
+                  value=Constant(value='organic')),
+                Assign(
+                  targets=[
+                    Name(id='api_key_env_name', ctx=Store())],
+                  value=Constant(value='SERPER_API_KEY'))]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='api_key',
+                  ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='os', ctx=Load()),
+                  attr='getenv',
+                  ctx=Load()),
+                args=[
+                  Name(id='api_key_env_name', ctx=Load())])),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='api_key',
+                  ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ValueError', ctx=Load()),
+                    args=[
+                      JoinedStr(
+                        values=[
+                          Constant(value="Missing API key. Make sure you have '"),
+                          FormattedValue(
+                            value=Name(id='api_key_env_name', ctx=Load()),
+                            conversion=-1),
+                          Constant(value="' in your env variables.")])]))])]),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='filter_year',
+                annotation=BinOp(
+                  left=Name(id='int', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))],
+            defaults=[
+              Constant(value=None)]),
+          body=[
+            Import(
+              names=[
+                alias(name='requests')]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='provider',
+                  ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='serpapi')]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='params', ctx=Store())],
+                  value=Dict(
+                    keys=[
+                      Constant(value='q'),
+                      Constant(value='api_key'),
+                      Constant(value='engine'),
+                      Constant(value='google_domain')],
+                    values=[
+                      Name(id='query', ctx=Load()),
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='api_key',
+                        ctx=Load()),
+                      Constant(value='google'),
+                      Constant(value='google.com')])),
+                Assign(
+                  targets=[
+                    Name(id='base_url', ctx=Store())],
+                  value=Constant(value='https://serpapi.com/search.json'))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Name(id='params', ctx=Store())],
+                  value=Dict(
+                    keys=[
+                      Constant(value='q'),
+                      Constant(value='api_key')],
+                    values=[
+                      Name(id='query', ctx=Load()),
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='api_key',
+                        ctx=Load())])),
+                Assign(
+                  targets=[
+                    Name(id='base_url', ctx=Store())],
+                  value=Constant(value='https://google.serper.dev/search'))]),
+            If(
+              test=Compare(
+                left=Name(id='filter_year', ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Name(id='params', ctx=Load()),
+                      slice=Constant(value='tbs'),
+                      ctx=Store())],
+                  value=JoinedStr(
+                    values=[
+                      Constant(value='cdr:1,cd_min:01/01/'),
+                      FormattedValue(
+                        value=Name(id='filter_year', ctx=Load()),
+                        conversion=-1),
+                      Constant(value=',cd_max:12/31/'),
+                      FormattedValue(
+                        value=Name(id='filter_year', ctx=Load()),
+                        conversion=-1)]))]),
+            Assign(
+              targets=[
+                Name(id='response', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='requests', ctx=Load()),
+                  attr='get',
+                  ctx=Load()),
+                args=[
+                  Name(id='base_url', ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='params',
+                    value=Name(id='params', ctx=Load()))])),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='response', ctx=Load()),
+                  attr='status_code',
+                  ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value=200)]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='results', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='response', ctx=Load()),
+                      attr='json',
+                      ctx=Load())))],
+              orelse=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ValueError', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Attribute(
+                          value=Name(id='response', ctx=Load()),
+                          attr='json',
+                          ctx=Load()))]))]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='organic_key',
+                  ctx=Load()),
+                ops=[
+                  NotIn()],
+                comparators=[
+                  Call(
+                    func=Attribute(
+                      value=Name(id='results', ctx=Load()),
+                      attr='keys',
+                      ctx=Load()))]),
+              body=[
+                If(
+                  test=Compare(
+                    left=Name(id='filter_year', ctx=Load()),
+                    ops=[
+                      IsNot()],
+                    comparators=[
+                      Constant(value=None)]),
+                  body=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='Exception', ctx=Load()),
+                        args=[
+                          JoinedStr(
+                            values=[
+                              Constant(value="No results found for query: '"),
+                              FormattedValue(
+                                value=Name(id='query', ctx=Load()),
+                                conversion=-1),
+                              Constant(value="' with filtering on year="),
+                              FormattedValue(
+                                value=Name(id='filter_year', ctx=Load()),
+                                conversion=-1),
+                              Constant(value='. Use a less restrictive query or do not filter on year.')])]))],
+                  orelse=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='Exception', ctx=Load()),
+                        args=[
+                          JoinedStr(
+                            values=[
+                              Constant(value="No results found for query: '"),
+                              FormattedValue(
+                                value=Name(id='query', ctx=Load()),
+                                conversion=-1),
+                              Constant(value="'. Use a less restrictive query.")])]))])]),
+            If(
+              test=Compare(
+                left=Call(
+                  func=Name(id='len', ctx=Load()),
+                  args=[
+                    Subscript(
+                      value=Name(id='results', ctx=Load()),
+                      slice=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='organic_key',
+                        ctx=Load()),
+                      ctx=Load())]),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value=0)]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='year_filter_message', ctx=Store())],
+                  value=IfExp(
+                    test=Compare(
+                      left=Name(id='filter_year', ctx=Load()),
+                      ops=[
+                        IsNot()],
+                      comparators=[
+                        Constant(value=None)]),
+                    body=JoinedStr(
+                      values=[
+                        Constant(value=' with filter year='),
+                        FormattedValue(
+                          value=Name(id='filter_year', ctx=Load()),
+                          conversion=-1)]),
+                    orelse=Constant(value=''))),
+                Return(
+                  value=JoinedStr(
+                    values=[
+                      Constant(value="No results found for '"),
+                      FormattedValue(
+                        value=Name(id='query', ctx=Load()),
+                        conversion=-1),
+                      Constant(value="'"),
+                      FormattedValue(
+                        value=Name(id='year_filter_message', ctx=Load()),
+                        conversion=-1),
+                      Constant(value='. Try with a more general query, or remove the year filter.')]))]),
+            Assign(
+              targets=[
+                Name(id='web_snippets', ctx=Store())],
+              value=List(ctx=Load())),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='organic_key',
+                  ctx=Load()),
+                ops=[
+                  In()],
+                comparators=[
+                  Name(id='results', ctx=Load())]),
+              body=[
+                For(
+                  target=Tuple(
+                    elts=[
+                      Name(id='idx', ctx=Store()),
+                      Name(id='page', ctx=Store())],
+                    ctx=Store()),
+                  iter=Call(
+                    func=Name(id='enumerate', ctx=Load()),
+                    args=[
+                      Subscript(
+                        value=Name(id='results', ctx=Load()),
+                        slice=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='organic_key',
+                          ctx=Load()),
+                        ctx=Load())]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='date_published', ctx=Store())],
+                      value=Constant(value='')),
+                    If(
+                      test=Compare(
+                        left=Constant(value='date'),
+                        ops=[
+                          In()],
+                        comparators=[
+                          Name(id='page', ctx=Load())]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Name(id='date_published', ctx=Store())],
+                          value=BinOp(
+                            left=Constant(value='\nDate published: '),
+                            op=Add(),
+                            right=Subscript(
+                              value=Name(id='page', ctx=Load()),
+                              slice=Constant(value='date'),
+                              ctx=Load())))]),
+                    Assign(
+                      targets=[
+                        Name(id='source', ctx=Store())],
+                      value=Constant(value='')),
+                    If(
+                      test=Compare(
+                        left=Constant(value='source'),
+                        ops=[
+                          In()],
+                        comparators=[
+                          Name(id='page', ctx=Load())]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Name(id='source', ctx=Store())],
+                          value=BinOp(
+                            left=Constant(value='\nSource: '),
+                            op=Add(),
+                            right=Subscript(
+                              value=Name(id='page', ctx=Load()),
+                              slice=Constant(value='source'),
+                              ctx=Load())))]),
+                    Assign(
+                      targets=[
+                        Name(id='snippet', ctx=Store())],
+                      value=Constant(value='')),
+                    If(
+                      test=Compare(
+                        left=Constant(value='snippet'),
+                        ops=[
+                          In()],
+                        comparators=[
+                          Name(id='page', ctx=Load())]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Name(id='snippet', ctx=Store())],
+                          value=BinOp(
+                            left=Constant(value='\n'),
+                            op=Add(),
+                            right=Subscript(
+                              value=Name(id='page', ctx=Load()),
+                              slice=Constant(value='snippet'),
+                              ctx=Load())))]),
+                    Assign(
+                      targets=[
+                        Name(id='redacted_version', ctx=Store())],
+                      value=JoinedStr(
+                        values=[
+                          FormattedValue(
+                            value=Name(id='idx', ctx=Load()),
+                            conversion=-1),
+                          Constant(value='. ['),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='page', ctx=Load()),
+                              slice=Constant(value='title'),
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=']('),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='page', ctx=Load()),
+                              slice=Constant(value='link'),
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=')'),
+                          FormattedValue(
+                            value=Name(id='date_published', ctx=Load()),
+                            conversion=-1),
+                          FormattedValue(
+                            value=Name(id='source', ctx=Load()),
+                            conversion=-1),
+                          Constant(value='\n'),
+                          FormattedValue(
+                            value=Name(id='snippet', ctx=Load()),
+                            conversion=-1)])),
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='web_snippets', ctx=Load()),
+                          attr='append',
+                          ctx=Load()),
+                        args=[
+                          Name(id='redacted_version', ctx=Load())]))])]),
+            Return(
+              value=BinOp(
+                left=Constant(value='## Search Results\n'),
+                op=Add(),
+                right=Call(
+                  func=Attribute(
+                    value=Constant(value='\n\n'),
+                    attr='join',
+                    ctx=Load()),
+                  args=[
+                    Name(id='web_snippets', ctx=Load())])))],
+          returns=Name(id='str', ctx=Load()))]),
+    ClassDef(
+      name='ApiWebSearchTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='Web search tool that performs API-based searches.\n    By default, it uses the Brave Search API.\n\n    This tool implements a rate limiting mechanism to ensure compliance with API usage policies.\n    By default, it limits requests to 1 query per second.\n\n    Args:\n        endpoint (`str`): API endpoint URL. Defaults to Brave Search API.\n        api_key (`str`): API key for authentication.\n        api_key_name (`str`): Environment variable name containing the API key. Defaults to "BRAVE_API_KEY".\n        headers (`dict`, *optional*): Headers for API requests.\n        params (`dict`, *optional*): Parameters for API requests.\n        rate_limit (`float`, default `1.0`): Maximum queries per second. Set to `None` to disable rate limiting.\n\n    Examples:\n        ```python\n        >>> from smolagents import ApiWebSearchTool\n        >>> web_search_tool = ApiWebSearchTool(rate_limit=50.0)\n        >>> results = web_search_tool("Hugging Face")\n        >>> print(results)\n        ```\n    ')),
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='web_search')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='Performs a web search for a query and returns a string of the top search results formatted as markdown with titles, URLs, and descriptions.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='query')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The search query to perform.')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='endpoint',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='api_key',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='api_key_name',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='headers',
+                annotation=Name(id='dict', ctx=Load())),
+              arg(
+                arg='params',
+                annotation=Name(id='dict', ctx=Load())),
+              arg(
+                arg='rate_limit',
+                annotation=BinOp(
+                  left=Name(id='float', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))],
+            defaults=[
+              Constant(value=''),
+              Constant(value=''),
+              Constant(value=''),
+              Constant(value=None),
+              Constant(value=None),
+              Constant(value=1.0)]),
+          body=[
+            Import(
+              names=[
+                alias(name='os')]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='endpoint',
+                  ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Name(id='endpoint', ctx=Load()),
+                  Constant(value='https://api.search.brave.com/res/v1/web/search')])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='api_key_name',
+                  ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Name(id='api_key_name', ctx=Load()),
+                  Constant(value='BRAVE_API_KEY')])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='api_key',
+                  ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Name(id='api_key', ctx=Load()),
+                  Call(
+                    func=Attribute(
+                      value=Name(id='os', ctx=Load()),
+                      attr='getenv',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='api_key_name',
+                        ctx=Load())])])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='headers',
+                  ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Name(id='headers', ctx=Load()),
+                  Dict(
+                    keys=[
+                      Constant(value='X-Subscription-Token')],
+                    values=[
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='api_key',
+                        ctx=Load())])])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='params',
+                  ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Name(id='params', ctx=Load()),
+                  Dict(
+                    keys=[
+                      Constant(value='count')],
+                    values=[
+                      Constant(value=10)])])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='rate_limit',
+                  ctx=Store())],
+              value=Name(id='rate_limit', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_min_interval',
+                  ctx=Store())],
+              value=IfExp(
+                test=Name(id='rate_limit', ctx=Load()),
+                body=BinOp(
+                  left=Constant(value=1.0),
+                  op=Div(),
+                  right=Name(id='rate_limit', ctx=Load())),
+                orelse=Constant(value=0.0))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_last_request_time',
+                  ctx=Store())],
+              value=Constant(value=0.0))]),
+        FunctionDef(
+          name='_enforce_rate_limit',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Import(
+              names=[
+                alias(name='time')]),
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='rate_limit',
+                  ctx=Load())),
+              body=[
+                Return()]),
+            Assign(
+              targets=[
+                Name(id='now', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='time', ctx=Load()),
+                  attr='time',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='elapsed', ctx=Store())],
+              value=BinOp(
+                left=Name(id='now', ctx=Load()),
+                op=Sub(),
+                right=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_last_request_time',
+                  ctx=Load()))),
+            If(
+              test=Compare(
+                left=Name(id='elapsed', ctx=Load()),
+                ops=[
+                  Lt()],
+                comparators=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_min_interval',
+                    ctx=Load())]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='time', ctx=Load()),
+                      attr='sleep',
+                      ctx=Load()),
+                    args=[
+                      BinOp(
+                        left=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_min_interval',
+                          ctx=Load()),
+                        op=Sub(),
+                        right=Name(id='elapsed', ctx=Load()))]))]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_last_request_time',
+                  ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='time', ctx=Load()),
+                  attr='time',
+                  ctx=Load())))],
+          returns=Constant(value=None)),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Import(
+              names=[
+                alias(name='requests')]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_enforce_rate_limit',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='params', ctx=Store())],
+              value=Dict(
+                keys=[
+                  None,
+                  Constant(value='q')],
+                values=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='params',
+                    ctx=Load()),
+                  Name(id='query', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='response', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='requests', ctx=Load()),
+                  attr='get',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='endpoint',
+                    ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='headers',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='headers',
+                      ctx=Load())),
+                  keyword(
+                    arg='params',
+                    value=Name(id='params', ctx=Load()))])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='response', ctx=Load()),
+                  attr='raise_for_status',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='data', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='response', ctx=Load()),
+                  attr='json',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='results', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='extract_results',
+                  ctx=Load()),
+                args=[
+                  Name(id='data', ctx=Load())])),
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='format_markdown',
+                  ctx=Load()),
+                args=[
+                  Name(id='results', ctx=Load())]))],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='extract_results',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='data',
+                annotation=Name(id='dict', ctx=Load()))]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='results', ctx=Store())],
+              value=List(ctx=Load())),
+            For(
+              target=Name(id='result', ctx=Store()),
+              iter=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='data', ctx=Load()),
+                      attr='get',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='web'),
+                      Dict()]),
+                  attr='get',
+                  ctx=Load()),
+                args=[
+                  Constant(value='results'),
+                  List(ctx=Load())]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='results', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Dict(
+                        keys=[
+                          Constant(value='title'),
+                          Constant(value='url'),
+                          Constant(value='description')],
+                        values=[
+                          Subscript(
+                            value=Name(id='result', ctx=Load()),
+                            slice=Constant(value='title'),
+                            ctx=Load()),
+                          Subscript(
+                            value=Name(id='result', ctx=Load()),
+                            slice=Constant(value='url'),
+                            ctx=Load()),
+                          Call(
+                            func=Attribute(
+                              value=Name(id='result', ctx=Load()),
+                              attr='get',
+                              ctx=Load()),
+                            args=[
+                              Constant(value='description'),
+                              Constant(value='')])])]))]),
+            Return(
+              value=Name(id='results', ctx=Load()))],
+          returns=Name(id='list', ctx=Load())),
+        FunctionDef(
+          name='format_markdown',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='results',
+                annotation=Name(id='list', ctx=Load()))]),
+          body=[
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=Name(id='results', ctx=Load())),
+              body=[
+                Return(
+                  value=Constant(value='No results found.'))]),
+            Return(
+              value=BinOp(
+                left=Constant(value='## Search Results\n\n'),
+                op=Add(),
+                right=Call(
+                  func=Attribute(
+                    value=Constant(value='\n\n'),
+                    attr='join',
+                    ctx=Load()),
+                  args=[
+                    ListComp(
+                      elt=JoinedStr(
+                        values=[
+                          FormattedValue(
+                            value=Name(id='idx', ctx=Load()),
+                            conversion=-1),
+                          Constant(value='. ['),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='result', ctx=Load()),
+                              slice=Constant(value='title'),
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=']('),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='result', ctx=Load()),
+                              slice=Constant(value='url'),
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=')\n'),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='result', ctx=Load()),
+                              slice=Constant(value='description'),
+                              ctx=Load()),
+                            conversion=-1)]),
+                      generators=[
+                        comprehension(
+                          target=Tuple(
+                            elts=[
+                              Name(id='idx', ctx=Store()),
+                              Name(id='result', ctx=Store())],
+                            ctx=Store()),
+                          iter=Call(
+                            func=Name(id='enumerate', ctx=Load()),
+                            args=[
+                              Name(id='results', ctx=Load())],
+                            keywords=[
+                              keyword(
+                                arg='start',
+                                value=Constant(value=1))]),
+                          is_async=0)])])))],
+          returns=Name(id='str', ctx=Load()))]),
+    ClassDef(
+      name='WebSearchTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='web_search')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='Performs a web search for a query and returns a string of the top search results formatted as markdown with titles, links, and descriptions.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='query')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The search query to perform.')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='max_results',
+                annotation=Name(id='int', ctx=Load())),
+              arg(
+                arg='engine',
+                annotation=Name(id='str', ctx=Load()))],
+            defaults=[
+              Constant(value=10),
+              Constant(value='duckduckgo')]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='max_results',
+                  ctx=Store())],
+              value=Name(id='max_results', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='engine',
+                  ctx=Store())],
+              value=Name(id='engine', ctx=Load()))]),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='results', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='search',
+                  ctx=Load()),
+                args=[
+                  Name(id='query', ctx=Load())])),
+            If(
+              test=Compare(
+                left=Call(
+                  func=Name(id='len', ctx=Load()),
+                  args=[
+                    Name(id='results', ctx=Load())]),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value=0)]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='Exception', ctx=Load()),
+                    args=[
+                      Constant(value='No results found! Try a less restrictive/shorter query.')]))]),
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='parse_results',
+                  ctx=Load()),
+                args=[
+                  Name(id='results', ctx=Load())]))],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='search',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='engine',
+                  ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='duckduckgo')]),
+              body=[
+                Return(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='search_duckduckgo',
+                      ctx=Load()),
+                    args=[
+                      Name(id='query', ctx=Load())]))],
+              orelse=[
+                If(
+                  test=Compare(
+                    left=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='engine',
+                      ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='bing')]),
+                  body=[
+                    Return(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='search_bing',
+                          ctx=Load()),
+                        args=[
+                          Name(id='query', ctx=Load())]))],
+                  orelse=[
+                    If(
+                      test=Compare(
+                        left=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='engine',
+                          ctx=Load()),
+                        ops=[
+                          Eq()],
+                        comparators=[
+                          Constant(value='exa')]),
+                      body=[
+                        Return(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='search_exa',
+                              ctx=Load()),
+                            args=[
+                              Name(id='query', ctx=Load())]))],
+                      orelse=[
+                        Raise(
+                          exc=Call(
+                            func=Name(id='ValueError', ctx=Load()),
+                            args=[
+                              JoinedStr(
+                                values=[
+                                  Constant(value='Unsupported engine: '),
+                                  FormattedValue(
+                                    value=Attribute(
+                                      value=Name(id='self', ctx=Load()),
+                                      attr='engine',
+                                      ctx=Load()),
+                                    conversion=-1)])]))])])])],
+          returns=Name(id='list', ctx=Load())),
+        FunctionDef(
+          name='parse_results',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='results',
+                annotation=Name(id='list', ctx=Load()))]),
+          body=[
+            Return(
+              value=BinOp(
+                left=Constant(value='## Search Results\n\n'),
+                op=Add(),
+                right=Call(
+                  func=Attribute(
+                    value=Constant(value='\n\n'),
+                    attr='join',
+                    ctx=Load()),
+                  args=[
+                    ListComp(
+                      elt=JoinedStr(
+                        values=[
+                          Constant(value='['),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='result', ctx=Load()),
+                              slice=Constant(value='title'),
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=']('),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='result', ctx=Load()),
+                              slice=Constant(value='link'),
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=')\n'),
+                          FormattedValue(
+                            value=Subscript(
+                              value=Name(id='result', ctx=Load()),
+                              slice=Constant(value='description'),
+                              ctx=Load()),
+                            conversion=-1)]),
+                      generators=[
+                        comprehension(
+                          target=Name(id='result', ctx=Store()),
+                          iter=Name(id='results', ctx=Load()),
+                          is_async=0)])])))],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='search_duckduckgo',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Import(
+              names=[
+                alias(name='requests')]),
+            Assign(
+              targets=[
+                Name(id='response', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='requests', ctx=Load()),
+                  attr='get',
+                  ctx=Load()),
+                args=[
+                  Constant(value='https://lite.duckduckgo.com/lite/')],
+                keywords=[
+                  keyword(
+                    arg='params',
+                    value=Dict(
+                      keys=[
+                        Constant(value='q')],
+                      values=[
+                        Name(id='query', ctx=Load())])),
+                  keyword(
+                    arg='headers',
+                    value=Dict(
+                      keys=[
+                        Constant(value='User-Agent')],
+                      values=[
+                        Constant(value='Mozilla/5.0')]))])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='response', ctx=Load()),
+                  attr='raise_for_status',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='parser', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_create_duckduckgo_parser',
+                  ctx=Load()))),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='parser', ctx=Load()),
+                  attr='feed',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='response', ctx=Load()),
+                    attr='text',
+                    ctx=Load())])),
+            Return(
+              value=Attribute(
+                value=Name(id='parser', ctx=Load()),
+                attr='results',
+                ctx=Load()))],
+          returns=Name(id='list', ctx=Load())),
+        FunctionDef(
+          name='_create_duckduckgo_parser',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            ImportFrom(
+              module='html.parser',
+              names=[
+                alias(name='HTMLParser')],
+              level=0),
+            ClassDef(
+              name='SimpleResultParser',
+              bases=[
+                Name(id='HTMLParser', ctx=Load())],
+              body=[
+                FunctionDef(
+                  name='__init__',
+                  args=arguments(
+                    args=[
+                      arg(arg='self')]),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Name(id='super', ctx=Load())),
+                          attr='__init__',
+                          ctx=Load()))),
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='results',
+                          ctx=Store())],
+                      value=List(ctx=Load())),
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='current',
+                          ctx=Store())],
+                      value=Dict()),
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='capture_title',
+                          ctx=Store())],
+                      value=Constant(value=False)),
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='capture_description',
+                          ctx=Store())],
+                      value=Constant(value=False)),
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='capture_link',
+                          ctx=Store())],
+                      value=Constant(value=False))]),
+                FunctionDef(
+                  name='handle_starttag',
+                  args=arguments(
+                    args=[
+                      arg(arg='self'),
+                      arg(arg='tag'),
+                      arg(arg='attrs')]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='attrs', ctx=Store())],
+                      value=Call(
+                        func=Name(id='dict', ctx=Load()),
+                        args=[
+                          Name(id='attrs', ctx=Load())])),
+                    If(
+                      test=BoolOp(
+                        op=And(),
+                        values=[
+                          Compare(
+                            left=Name(id='tag', ctx=Load()),
+                            ops=[
+                              Eq()],
+                            comparators=[
+                              Constant(value='a')]),
+                          Compare(
+                            left=Call(
+                              func=Attribute(
+                                value=Name(id='attrs', ctx=Load()),
+                                attr='get',
+                                ctx=Load()),
+                              args=[
+                                Constant(value='class')]),
+                            ops=[
+                              Eq()],
+                            comparators=[
+                              Constant(value='result-link')])]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='capture_title',
+                              ctx=Store())],
+                          value=Constant(value=True))],
+                      orelse=[
+                        If(
+                          test=BoolOp(
+                            op=And(),
+                            values=[
+                              Compare(
+                                left=Name(id='tag', ctx=Load()),
+                                ops=[
+                                  Eq()],
+                                comparators=[
+                                  Constant(value='td')]),
+                              Compare(
+                                left=Call(
+                                  func=Attribute(
+                                    value=Name(id='attrs', ctx=Load()),
+                                    attr='get',
+                                    ctx=Load()),
+                                  args=[
+                                    Constant(value='class')]),
+                                ops=[
+                                  Eq()],
+                                comparators=[
+                                  Constant(value='result-snippet')])]),
+                          body=[
+                            Assign(
+                              targets=[
+                                Attribute(
+                                  value=Name(id='self', ctx=Load()),
+                                  attr='capture_description',
+                                  ctx=Store())],
+                              value=Constant(value=True))],
+                          orelse=[
+                            If(
+                              test=BoolOp(
+                                op=And(),
+                                values=[
+                                  Compare(
+                                    left=Name(id='tag', ctx=Load()),
+                                    ops=[
+                                      Eq()],
+                                    comparators=[
+                                      Constant(value='span')]),
+                                  Compare(
+                                    left=Call(
+                                      func=Attribute(
+                                        value=Name(id='attrs', ctx=Load()),
+                                        attr='get',
+                                        ctx=Load()),
+                                      args=[
+                                        Constant(value='class')]),
+                                    ops=[
+                                      Eq()],
+                                    comparators=[
+                                      Constant(value='link-text')])]),
+                              body=[
+                                Assign(
+                                  targets=[
+                                    Attribute(
+                                      value=Name(id='self', ctx=Load()),
+                                      attr='capture_link',
+                                      ctx=Store())],
+                                  value=Constant(value=True))])])])]),
+                FunctionDef(
+                  name='handle_endtag',
+                  args=arguments(
+                    args=[
+                      arg(arg='self'),
+                      arg(arg='tag')]),
+                  body=[
+                    If(
+                      test=BoolOp(
+                        op=And(),
+                        values=[
+                          Compare(
+                            left=Name(id='tag', ctx=Load()),
+                            ops=[
+                              Eq()],
+                            comparators=[
+                              Constant(value='a')]),
+                          Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='capture_title',
+                            ctx=Load())]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='capture_title',
+                              ctx=Store())],
+                          value=Constant(value=False))],
+                      orelse=[
+                        If(
+                          test=BoolOp(
+                            op=And(),
+                            values=[
+                              Compare(
+                                left=Name(id='tag', ctx=Load()),
+                                ops=[
+                                  Eq()],
+                                comparators=[
+                                  Constant(value='td')]),
+                              Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='capture_description',
+                                ctx=Load())]),
+                          body=[
+                            Assign(
+                              targets=[
+                                Attribute(
+                                  value=Name(id='self', ctx=Load()),
+                                  attr='capture_description',
+                                  ctx=Store())],
+                              value=Constant(value=False))],
+                          orelse=[
+                            If(
+                              test=BoolOp(
+                                op=And(),
+                                values=[
+                                  Compare(
+                                    left=Name(id='tag', ctx=Load()),
+                                    ops=[
+                                      Eq()],
+                                    comparators=[
+                                      Constant(value='span')]),
+                                  Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='capture_link',
+                                    ctx=Load())]),
+                              body=[
+                                Assign(
+                                  targets=[
+                                    Attribute(
+                                      value=Name(id='self', ctx=Load()),
+                                      attr='capture_link',
+                                      ctx=Store())],
+                                  value=Constant(value=False))],
+                              orelse=[
+                                If(
+                                  test=Compare(
+                                    left=Name(id='tag', ctx=Load()),
+                                    ops=[
+                                      Eq()],
+                                    comparators=[
+                                      Constant(value='tr')]),
+                                  body=[
+                                    If(
+                                      test=Compare(
+                                        left=Set(
+                                          elts=[
+                                            Constant(value='title'),
+                                            Constant(value='description'),
+                                            Constant(value='link')]),
+                                        ops=[
+                                          LtE()],
+                                        comparators=[
+                                          Call(
+                                            func=Attribute(
+                                              value=Attribute(
+                                                value=Name(id='self', ctx=Load()),
+                                                attr='current',
+                                                ctx=Load()),
+                                              attr='keys',
+                                              ctx=Load()))]),
+                                      body=[
+                                        Assign(
+                                          targets=[
+                                            Subscript(
+                                              value=Attribute(
+                                                value=Name(id='self', ctx=Load()),
+                                                attr='current',
+                                                ctx=Load()),
+                                              slice=Constant(value='description'),
+                                              ctx=Store())],
+                                          value=Call(
+                                            func=Attribute(
+                                              value=Constant(value=' '),
+                                              attr='join',
+                                              ctx=Load()),
+                                            args=[
+                                              Subscript(
+                                                value=Attribute(
+                                                  value=Name(id='self', ctx=Load()),
+                                                  attr='current',
+                                                  ctx=Load()),
+                                                slice=Constant(value='description'),
+                                                ctx=Load())])),
+                                        Expr(
+                                          value=Call(
+                                            func=Attribute(
+                                              value=Attribute(
+                                                value=Name(id='self', ctx=Load()),
+                                                attr='results',
+                                                ctx=Load()),
+                                              attr='append',
+                                              ctx=Load()),
+                                            args=[
+                                              Attribute(
+                                                value=Name(id='self', ctx=Load()),
+                                                attr='current',
+                                                ctx=Load())])),
+                                        Assign(
+                                          targets=[
+                                            Attribute(
+                                              value=Name(id='self', ctx=Load()),
+                                              attr='current',
+                                              ctx=Store())],
+                                          value=Dict())])])])])])]),
+                FunctionDef(
+                  name='handle_data',
+                  args=arguments(
+                    args=[
+                      arg(arg='self'),
+                      arg(arg='data')]),
+                  body=[
+                    If(
+                      test=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='capture_title',
+                        ctx=Load()),
+                      body=[
+                        Assign(
+                          targets=[
+                            Subscript(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='current',
+                                ctx=Load()),
+                              slice=Constant(value='title'),
+                              ctx=Store())],
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='data', ctx=Load()),
+                              attr='strip',
+                              ctx=Load())))],
+                      orelse=[
+                        If(
+                          test=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='capture_description',
+                            ctx=Load()),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='current',
+                                    ctx=Load()),
+                                  attr='setdefault',
+                                  ctx=Load()),
+                                args=[
+                                  Constant(value='description'),
+                                  List(ctx=Load())])),
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Subscript(
+                                    value=Attribute(
+                                      value=Name(id='self', ctx=Load()),
+                                      attr='current',
+                                      ctx=Load()),
+                                    slice=Constant(value='description'),
+                                    ctx=Load()),
+                                  attr='append',
+                                  ctx=Load()),
+                                args=[
+                                  Call(
+                                    func=Attribute(
+                                      value=Name(id='data', ctx=Load()),
+                                      attr='strip',
+                                      ctx=Load()))]))],
+                          orelse=[
+                            If(
+                              test=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='capture_link',
+                                ctx=Load()),
+                              body=[
+                                Assign(
+                                  targets=[
+                                    Subscript(
+                                      value=Attribute(
+                                        value=Name(id='self', ctx=Load()),
+                                        attr='current',
+                                        ctx=Load()),
+                                      slice=Constant(value='link'),
+                                      ctx=Store())],
+                                  value=BinOp(
+                                    left=Constant(value='https://'),
+                                    op=Add(),
+                                    right=Call(
+                                      func=Attribute(
+                                        value=Name(id='data', ctx=Load()),
+                                        attr='strip',
+                                        ctx=Load()))))])])])])]),
+            Return(
+              value=Call(
+                func=Name(id='SimpleResultParser', ctx=Load())))]),
+        FunctionDef(
+          name='search_bing',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Import(
+              names=[
+                alias(name='xml.etree.ElementTree', asname='ET')]),
+            Import(
+              names=[
+                alias(name='requests')]),
+            Assign(
+              targets=[
+                Name(id='response', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='requests', ctx=Load()),
+                  attr='get',
+                  ctx=Load()),
+                args=[
+                  Constant(value='https://www.bing.com/search')],
+                keywords=[
+                  keyword(
+                    arg='params',
+                    value=Dict(
+                      keys=[
+                        Constant(value='q'),
+                        Constant(value='format')],
+                      values=[
+                        Name(id='query', ctx=Load()),
+                        Constant(value='rss')]))])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='response', ctx=Load()),
+                  attr='raise_for_status',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='root', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='ET', ctx=Load()),
+                  attr='fromstring',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='response', ctx=Load()),
+                    attr='text',
+                    ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='items', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='root', ctx=Load()),
+                  attr='findall',
+                  ctx=Load()),
+                args=[
+                  Constant(value='.//item')])),
+            Assign(
+              targets=[
+                Name(id='results', ctx=Store())],
+              value=ListComp(
+                elt=Dict(
+                  keys=[
+                    Constant(value='title'),
+                    Constant(value='link'),
+                    Constant(value='description')],
+                  values=[
+                    Call(
+                      func=Attribute(
+                        value=Name(id='item', ctx=Load()),
+                        attr='findtext',
+                        ctx=Load()),
+                      args=[
+                        Constant(value='title')]),
+                    Call(
+                      func=Attribute(
+                        value=Name(id='item', ctx=Load()),
+                        attr='findtext',
+                        ctx=Load()),
+                      args=[
+                        Constant(value='link')]),
+                    Call(
+                      func=Attribute(
+                        value=Name(id='item', ctx=Load()),
+                        attr='findtext',
+                        ctx=Load()),
+                      args=[
+                        Constant(value='description')])]),
+                generators=[
+                  comprehension(
+                    target=Name(id='item', ctx=Store()),
+                    iter=Subscript(
+                      value=Name(id='items', ctx=Load()),
+                      slice=Slice(
+                        upper=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='max_results',
+                          ctx=Load())),
+                      ctx=Load()),
+                    is_async=0)])),
+            Return(
+              value=Name(id='results', ctx=Load()))],
+          returns=Name(id='list', ctx=Load())),
+        FunctionDef(
+          name='search_exa',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='Search using the Exa API. Requires an EXA_API_KEY environment variable.')),
+            Import(
+              names=[
+                alias(name='os')]),
+            Import(
+              names=[
+                alias(name='requests')]),
+            Assign(
+              targets=[
+                Name(id='api_key', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='os', ctx=Load()),
+                  attr='getenv',
+                  ctx=Load()),
+                args=[
+                  Constant(value='EXA_API_KEY')])),
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=Name(id='api_key', ctx=Load())),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ValueError', ctx=Load()),
+                    args=[
+                      Constant(value="Missing API key. Make sure you have 'EXA_API_KEY' in your env variables.")]))]),
+            Assign(
+              targets=[
+                Name(id='response', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='requests', ctx=Load()),
+                  attr='post',
+                  ctx=Load()),
+                args=[
+                  Constant(value='https://api.exa.ai/search')],
+                keywords=[
+                  keyword(
+                    arg='headers',
+                    value=Dict(
+                      keys=[
+                        Constant(value='x-api-key'),
+                        Constant(value='Content-Type'),
+                        Constant(value='x-exa-integration')],
+                      values=[
+                        Name(id='api_key', ctx=Load()),
+                        Constant(value='application/json'),
+                        Constant(value='smolagents')])),
+                  keyword(
+                    arg='json',
+                    value=Dict(
+                      keys=[
+                        Constant(value='query'),
+                        Constant(value='numResults'),
+                        Constant(value='contents')],
+                      values=[
+                        Name(id='query', ctx=Load()),
+                        Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='max_results',
+                          ctx=Load()),
+                        Dict(
+                          keys=[
+                            Constant(value='highlights')],
+                          values=[
+                            Constant(value=True)])])),
+                  keyword(
+                    arg='timeout',
+                    value=Call(
+                      func=Name(id='getattr', ctx=Load()),
+                      args=[
+                        Name(id='self', ctx=Load()),
+                        Constant(value='timeout'),
+                        Constant(value=30)]))])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='response', ctx=Load()),
+                  attr='raise_for_status',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='data', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='response', ctx=Load()),
+                  attr='json',
+                  ctx=Load()))),
+            Return(
+              value=ListComp(
+                elt=Dict(
+                  keys=[
+                    Constant(value='title'),
+                    Constant(value='link'),
+                    Constant(value='description')],
+                  values=[
+                    Call(
+                      func=Attribute(
+                        value=Name(id='result', ctx=Load()),
+                        attr='get',
+                        ctx=Load()),
+                      args=[
+                        Constant(value='title'),
+                        Constant(value='')]),
+                    Subscript(
+                      value=Name(id='result', ctx=Load()),
+                      slice=Constant(value='url'),
+                      ctx=Load()),
+                    Call(
+                      func=Attribute(
+                        value=Constant(value=' '),
+                        attr='join',
+                        ctx=Load()),
+                      args=[
+                        BoolOp(
+                          op=Or(),
+                          values=[
+                            Call(
+                              func=Attribute(
+                                value=Name(id='result', ctx=Load()),
+                                attr='get',
+                                ctx=Load()),
+                              args=[
+                                Constant(value='highlights')]),
+                            List(ctx=Load())])])]),
+                generators=[
+                  comprehension(
+                    target=Name(id='result', ctx=Store()),
+                    iter=Call(
+                      func=Attribute(
+                        value=Name(id='data', ctx=Load()),
+                        attr='get',
+                        ctx=Load()),
+                      args=[
+                        Constant(value='results'),
+                        List(ctx=Load())]),
+                    is_async=0)]))],
+          returns=Name(id='list', ctx=Load()))]),
+    ClassDef(
+      name='VisitWebpageTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='visit_webpage')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='Visits a webpage at the given url and reads its content as a markdown string. Use this to browse webpages.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='url')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The url of the webpage to visit.')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='max_output_length',
+                annotation=Name(id='int', ctx=Load()))],
+            defaults=[
+              Constant(value=40000)]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='max_output_length',
+                  ctx=Store())],
+              value=Name(id='max_output_length', ctx=Load()))]),
+        FunctionDef(
+          name='_truncate_content',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='content',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='max_length',
+                annotation=Name(id='int', ctx=Load()))]),
+          body=[
+            If(
+              test=Compare(
+                left=Call(
+                  func=Name(id='len', ctx=Load()),
+                  args=[
+                    Name(id='content', ctx=Load())]),
+                ops=[
+                  LtE()],
+                comparators=[
+                  Name(id='max_length', ctx=Load())]),
+              body=[
+                Return(
+                  value=Name(id='content', ctx=Load()))]),
+            Return(
+              value=BinOp(
+                left=Subscript(
+                  value=Name(id='content', ctx=Load()),
+                  slice=Slice(
+                    upper=Name(id='max_length', ctx=Load())),
+                  ctx=Load()),
+                op=Add(),
+                right=JoinedStr(
+                  values=[
+                    Constant(value='\n..._This content has been truncated to stay below '),
+                    FormattedValue(
+                      value=Name(id='max_length', ctx=Load()),
+                      conversion=-1),
+                    Constant(value=' characters_...\n')])))],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='url',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Try(
+              body=[
+                Import(
+                  names=[
+                    alias(name='re')]),
+                Import(
+                  names=[
+                    alias(name='requests')]),
+                ImportFrom(
+                  module='markdownify',
+                  names=[
+                    alias(name='markdownify')],
+                  level=0),
+                ImportFrom(
+                  module='requests.exceptions',
+                  names=[
+                    alias(name='RequestException')],
+                  level=0)],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='ImportError', ctx=Load()),
+                  name='e',
+                  body=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='ImportError', ctx=Load()),
+                        args=[
+                          Constant(value='You must install packages `markdownify` and `requests` to run this tool: for instance run `pip install markdownify requests`.')]),
+                      cause=Name(id='e', ctx=Load()))])]),
+            Try(
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='response', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='requests', ctx=Load()),
+                      attr='get',
+                      ctx=Load()),
+                    args=[
+                      Name(id='url', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='timeout',
+                        value=Constant(value=20))])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='response', ctx=Load()),
+                      attr='raise_for_status',
+                      ctx=Load()))),
+                Assign(
+                  targets=[
+                    Name(id='markdown_content', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Call(
+                        func=Name(id='markdownify', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='response', ctx=Load()),
+                            attr='text',
+                            ctx=Load())]),
+                      attr='strip',
+                      ctx=Load()))),
+                Assign(
+                  targets=[
+                    Name(id='markdown_content', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='re', ctx=Load()),
+                      attr='sub',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='\\n{3,}'),
+                      Constant(value='\n\n'),
+                      Name(id='markdown_content', ctx=Load())])),
+                Return(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='_truncate_content',
+                      ctx=Load()),
+                    args=[
+                      Name(id='markdown_content', ctx=Load()),
+                      Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='max_output_length',
+                        ctx=Load())]))],
+              handlers=[
+                ExceptHandler(
+                  type=Attribute(
+                    value=Attribute(
+                      value=Name(id='requests', ctx=Load()),
+                      attr='exceptions',
+                      ctx=Load()),
+                    attr='Timeout',
+                    ctx=Load()),
+                  body=[
+                    Return(
+                      value=Constant(value='The request timed out. Please try again later or check the URL.'))]),
+                ExceptHandler(
+                  type=Name(id='RequestException', ctx=Load()),
+                  name='e',
+                  body=[
+                    Return(
+                      value=JoinedStr(
+                        values=[
+                          Constant(value='Error fetching the webpage: '),
+                          FormattedValue(
+                            value=Call(
+                              func=Name(id='str', ctx=Load()),
+                              args=[
+                                Name(id='e', ctx=Load())]),
+                            conversion=-1)]))]),
+                ExceptHandler(
+                  type=Name(id='Exception', ctx=Load()),
+                  name='e',
+                  body=[
+                    Return(
+                      value=JoinedStr(
+                        values=[
+                          Constant(value='An unexpected error occurred: '),
+                          FormattedValue(
+                            value=Call(
+                              func=Name(id='str', ctx=Load()),
+                              args=[
+                                Name(id='e', ctx=Load())]),
+                            conversion=-1)]))])])],
+          returns=Name(id='str', ctx=Load()))]),
+    ClassDef(
+      name='WikipediaSearchTool',
+      bases=[
+        Name(id='Tool', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='\n    Search Wikipedia and return the summary or full text of the requested article, along with the page URL.\n\n    Attributes:\n        user_agent (`str`): Custom user-agent string to identify the project. This is required as per Wikipedia API policies.\n            See: https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy\n        language (`str`, default `"en"`): Language in which to retrieve Wikipedia article.\n            See: http://meta.wikimedia.org/wiki/List_of_Wikipedias\n        content_type (`Literal["summary", "text"]`, default `"text"`): Type of content to fetch. Can be "summary" for a short summary or "text" for the full article.\n        extract_format (`Literal["HTML", "WIKI"]`, default `"WIKI"`): Extraction format of the output. Can be `"WIKI"` or `"HTML"`.\n\n    Example:\n        ```python\n        >>> from smolagents import CodeAgent, InferenceClientModel, WikipediaSearchTool\n        >>> agent = CodeAgent(\n        >>>     tools=[\n        >>>            WikipediaSearchTool(\n        >>>                user_agent="MyResearchBot (myemail@example.com)",\n        >>>                language="en",\n        >>>                content_type="summary",  # or "text"\n        >>>                extract_format="WIKI",\n        >>>            )\n        >>>        ],\n        >>>     model=InferenceClientModel(),\n        >>> )\n        >>> agent.run("Python_(programming_language)")\n        ```\n    ')),
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='wikipedia_search')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='Searches Wikipedia and returns a summary or full text of the given topic, along with the page URL.')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='query')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='string'),
+                  Constant(value='The topic to search on Wikipedia.')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='user_agent',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='language',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='content_type',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='extract_format',
+                annotation=Name(id='str', ctx=Load()))],
+            defaults=[
+              Constant(value='Smolagents (myemail@example.com)'),
+              Constant(value='en'),
+              Constant(value='text'),
+              Constant(value='WIKI')]),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__init__',
+                  ctx=Load()))),
+            Try(
+              body=[
+                Import(
+                  names=[
+                    alias(name='wikipediaapi')])],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='ImportError', ctx=Load()),
+                  name='e',
+                  body=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='ImportError', ctx=Load()),
+                        args=[
+                          Constant(value='You must install `wikipedia-api` to run this tool: for instance run `pip install wikipedia-api`')]),
+                      cause=Name(id='e', ctx=Load()))])]),
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=Name(id='user_agent', ctx=Load())),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ValueError', ctx=Load()),
+                    args=[
+                      Constant(value='User-agent is required. Provide a meaningful identifier for your project.')]))]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='user_agent',
+                  ctx=Store())],
+              value=Name(id='user_agent', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='language',
+                  ctx=Store())],
+              value=Name(id='language', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='content_type',
+                  ctx=Store())],
+              value=Name(id='content_type', ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='extract_format_map', ctx=Store())],
+              value=Dict(
+                keys=[
+                  Constant(value='WIKI'),
+                  Constant(value='HTML')],
+                values=[
+                  Attribute(
+                    value=Attribute(
+                      value=Name(id='wikipediaapi', ctx=Load()),
+                      attr='ExtractFormat',
+                      ctx=Load()),
+                    attr='WIKI',
+                    ctx=Load()),
+                  Attribute(
+                    value=Attribute(
+                      value=Name(id='wikipediaapi', ctx=Load()),
+                      attr='ExtractFormat',
+                      ctx=Load()),
+                    attr='HTML',
+                    ctx=Load())])),
+            If(
+              test=Compare(
+                left=Name(id='extract_format', ctx=Load()),
+                ops=[
+                  NotIn()],
+                comparators=[
+                  Name(id='extract_format_map', ctx=Load())]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ValueError', ctx=Load()),
+                    args=[
+                      Constant(value="Invalid extract_format. Choose between 'WIKI' or 'HTML'.")]))]),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='extract_format',
+                  ctx=Store())],
+              value=Subscript(
+                value=Name(id='extract_format_map', ctx=Load()),
+                slice=Name(id='extract_format', ctx=Load()),
+                ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='wiki',
+                  ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='wikipediaapi', ctx=Load()),
+                  attr='Wikipedia',
+                  ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='user_agent',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='user_agent',
+                      ctx=Load())),
+                  keyword(
+                    arg='language',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='language',
+                      ctx=Load())),
+                  keyword(
+                    arg='extract_format',
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='extract_format',
+                      ctx=Load()))]))]),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='query',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Try(
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='page', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='wiki',
+                        ctx=Load()),
+                      attr='page',
+                      ctx=Load()),
+                    args=[
+                      Name(id='query', ctx=Load())])),
+                If(
+                  test=UnaryOp(
+                    op=Not(),
+                    operand=Call(
+                      func=Attribute(
+                        value=Name(id='page', ctx=Load()),
+                        attr='exists',
+                        ctx=Load()))),
+                  body=[
+                    Return(
+                      value=JoinedStr(
+                        values=[
+                          Constant(value="No Wikipedia page found for '"),
+                          FormattedValue(
+                            value=Name(id='query', ctx=Load()),
+                            conversion=-1),
+                          Constant(value="'. Try a different query.")]))]),
+                Assign(
+                  targets=[
+                    Name(id='title', ctx=Store())],
+                  value=Attribute(
+                    value=Name(id='page', ctx=Load()),
+                    attr='title',
+                    ctx=Load())),
+                Assign(
+                  targets=[
+                    Name(id='url', ctx=Store())],
+                  value=Attribute(
+                    value=Name(id='page', ctx=Load()),
+                    attr='fullurl',
+                    ctx=Load())),
+                If(
+                  test=Compare(
+                    left=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='content_type',
+                      ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='summary')]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='text', ctx=Store())],
+                      value=Attribute(
+                        value=Name(id='page', ctx=Load()),
+                        attr='summary',
+                        ctx=Load()))],
+                  orelse=[
+                    If(
+                      test=Compare(
+                        left=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='content_type',
+                          ctx=Load()),
+                        ops=[
+                          Eq()],
+                        comparators=[
+                          Constant(value='text')]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Name(id='text', ctx=Store())],
+                          value=Attribute(
+                            value=Name(id='page', ctx=Load()),
+                            attr='text',
+                            ctx=Load()))],
+                      orelse=[
+                        Return(
+                          value=Constant(value="⚠️ Invalid `content_type`. Use either 'summary' or 'text'."))])]),
+                Return(
+                  value=JoinedStr(
+                    values=[
+                      Constant(value='✅ **Wikipedia Page:** '),
+                      FormattedValue(
+                        value=Name(id='title', ctx=Load()),
+                        conversion=-1),
+                      Constant(value='\n\n**Content:** '),
+                      FormattedValue(
+                        value=Name(id='text', ctx=Load()),
+                        conversion=-1),
+                      Constant(value='\n\n🔗 **Read more:** '),
+                      FormattedValue(
+                        value=Name(id='url', ctx=Load()),
+                        conversion=-1)]))],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='Exception', ctx=Load()),
+                  name='e',
+                  body=[
+                    Return(
+                      value=JoinedStr(
+                        values=[
+                          Constant(value='Error fetching Wikipedia summary: '),
+                          FormattedValue(
+                            value=Call(
+                              func=Name(id='str', ctx=Load()),
+                              args=[
+                                Name(id='e', ctx=Load())]),
+                            conversion=-1)]))])])],
+          returns=Name(id='str', ctx=Load()))]),
+    ClassDef(
+      name='SpeechToTextTool',
+      bases=[
+        Name(id='PipelineTool', ctx=Load())],
+      body=[
+        Assign(
+          targets=[
+            Name(id='default_checkpoint', ctx=Store())],
+          value=Constant(value='openai/whisper-large-v3-turbo')),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=Constant(value='This is a tool that transcribes an audio into text. It returns the transcribed text.')),
+        Assign(
+          targets=[
+            Name(id='name', ctx=Store())],
+          value=Constant(value='transcriber')),
+        Assign(
+          targets=[
+            Name(id='inputs', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='audio')],
+            values=[
+              Dict(
+                keys=[
+                  Constant(value='type'),
+                  Constant(value='description')],
+                values=[
+                  Constant(value='audio'),
+                  Constant(value='The audio to transcribe. Can be a local path, an url, or a tensor.')])])),
+        Assign(
+          targets=[
+            Name(id='output_type', ctx=Store())],
+          value=Constant(value='string')),
+        FunctionDef(
+          name='__new__',
+          args=arguments(
+            args=[
+              arg(arg='cls')],
+            vararg=arg(arg='args'),
+            kwarg=arg(arg='kwargs')),
+          body=[
+            ImportFrom(
+              module='transformers.models.whisper',
+              names=[
+                alias(name='WhisperForConditionalGeneration'),
+                alias(name='WhisperProcessor')],
+              level=0),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='cls', ctx=Load()),
+                  attr='pre_processor_class',
+                  ctx=Store())],
+              value=Name(id='WhisperProcessor', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='cls', ctx=Load()),
+                  attr='model_class',
+                  ctx=Store())],
+              value=Name(id='WhisperForConditionalGeneration', ctx=Load())),
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='super', ctx=Load())),
+                  attr='__new__',
+                  ctx=Load()),
+                args=[
+                  Name(id='cls', ctx=Load())]))]),
+        FunctionDef(
+          name='encode',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='audio')]),
+          body=[
+            ImportFrom(
+              module='agent_types',
+              names=[
+                alias(name='AgentAudio')],
+              level=1),
+            Assign(
+              targets=[
+                Name(id='audio', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Name(id='AgentAudio', ctx=Load()),
+                    args=[
+                      Name(id='audio', ctx=Load())]),
+                  attr='to_raw',
+                  ctx=Load()))),
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='pre_processor',
+                  ctx=Load()),
+                args=[
+                  Name(id='audio', ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='return_tensors',
+                    value=Constant(value='pt'))]))]),
+        FunctionDef(
+          name='forward',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='inputs')]),
+          body=[
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='model',
+                    ctx=Load()),
+                  attr='generate',
+                  ctx=Load()),
+                args=[
+                  Subscript(
+                    value=Name(id='inputs', ctx=Load()),
+                    slice=Constant(value='input_features'),
+                    ctx=Load())]))]),
+        FunctionDef(
+          name='decode',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='outputs')]),
+          body=[
+            Return(
+              value=Subscript(
+                value=Call(
+                  func=Attribute(
+                    value=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='pre_processor',
+                      ctx=Load()),
+                    attr='batch_decode',
+                    ctx=Load()),
+                  args=[
+                    Name(id='outputs', ctx=Load())],
+                  keywords=[
+                    keyword(
+                      arg='skip_special_tokens',
+                      value=Constant(value=True))]),
+                slice=Constant(value=0),
+                ctx=Load()))])]),
+    Assign(
+      targets=[
+        Name(id='TOOL_MAPPING', ctx=Store())],
+      value=DictComp(
+        key=Attribute(
+          value=Name(id='tool_class', ctx=Load()),
+          attr='name',
+          ctx=Load()),
+        value=Name(id='tool_class', ctx=Load()),
+        generators=[
+          comprehension(
+            target=Name(id='tool_class', ctx=Store()),
+            iter=List(
+              elts=[
+                Name(id='PythonInterpreterTool', ctx=Load()),
+                Name(id='DuckDuckGoSearchTool', ctx=Load()),
+                Name(id='VisitWebpageTool', ctx=Load())],
+              ctx=Load()),
+            is_async=0)])),
+    Assign(
+      targets=[
+        Name(id='__all__', ctx=Store())],
+      value=List(
+        elts=[
+          Constant(value='ApiWebSearchTool'),
+          Constant(value='PythonInterpreterTool'),
+          Constant(value='FinalAnswerTool'),
+          Constant(value='UserInputTool'),
+          Constant(value='WebSearchTool'),
+          Constant(value='DuckDuckGoSearchTool'),
+          Constant(value='GoogleSearchTool'),
+          Constant(value='VisitWebpageTool'),
+          Constant(value='WikipediaSearchTool'),
+          Constant(value='SpeechToTextTool')],
+        ctx=Load()))])

@@ -1,0 +1,1213 @@
+Module(
+  body=[
+    Import(
+      names=[
+        alias(name='argparse')]),
+    Import(
+      names=[
+        alias(name='os')]),
+    ImportFrom(
+      module='dotenv',
+      names=[
+        alias(name='load_dotenv')],
+      level=0),
+    ImportFrom(
+      module='rich.console',
+      names=[
+        alias(name='Console')],
+      level=0),
+    ImportFrom(
+      module='rich.panel',
+      names=[
+        alias(name='Panel')],
+      level=0),
+    ImportFrom(
+      module='rich.prompt',
+      names=[
+        alias(name='Confirm'),
+        alias(name='Prompt')],
+      level=0),
+    ImportFrom(
+      module='rich.rule',
+      names=[
+        alias(name='Rule')],
+      level=0),
+    ImportFrom(
+      module='rich.table',
+      names=[
+        alias(name='Table')],
+      level=0),
+    ImportFrom(
+      module='smolagents',
+      names=[
+        alias(name='CodeAgent'),
+        alias(name='InferenceClientModel'),
+        alias(name='LiteLLMModel'),
+        alias(name='Model'),
+        alias(name='OpenAIModel'),
+        alias(name='Tool'),
+        alias(name='ToolCallingAgent'),
+        alias(name='TransformersModel')],
+      level=0),
+    ImportFrom(
+      module='smolagents.default_tools',
+      names=[
+        alias(name='TOOL_MAPPING')],
+      level=0),
+    Assign(
+      targets=[
+        Name(id='console', ctx=Store())],
+      value=Call(
+        func=Name(id='Console', ctx=Load()))),
+    Assign(
+      targets=[
+        Name(id='leopard_prompt', ctx=Store())],
+      value=Constant(value='How many seconds would it take for a leopard at full speed to run through Pont des Arts?')),
+    FunctionDef(
+      name='parse_arguments',
+      args=arguments(),
+      body=[
+        Assign(
+          targets=[
+            Name(id='parser', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='argparse', ctx=Load()),
+              attr='ArgumentParser',
+              ctx=Load()),
+            keywords=[
+              keyword(
+                arg='description',
+                value=Constant(value='Run a CodeAgent with all specified parameters'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='prompt')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='nargs',
+                value=Constant(value='?')),
+              keyword(
+                arg='default',
+                value=Constant(value=None)),
+              keyword(
+                arg='help',
+                value=Constant(value='The prompt to run with the agent. If no prompt is provided, interactive mode will be launched to guide user through agent setup'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--model-type')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='default',
+                value=Constant(value='InferenceClientModel')),
+              keyword(
+                arg='help',
+                value=Constant(value='The model type to use (e.g., InferenceClientModel, OpenAIModel, LiteLLMModel, TransformersModel)'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--action-type')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='default',
+                value=Constant(value='code')),
+              keyword(
+                arg='help',
+                value=Constant(value='The action type to use (e.g., code, tool_calling)'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--model-id')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='default',
+                value=Constant(value='Qwen/Qwen3-Next-80B-A3B-Thinking')),
+              keyword(
+                arg='help',
+                value=Constant(value='The model ID to use for the specified model type'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--imports')],
+            keywords=[
+              keyword(
+                arg='nargs',
+                value=Constant(value='*')),
+              keyword(
+                arg='default',
+                value=List(ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value="Space-separated list of imports to authorize (e.g., 'numpy pandas')"))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--tools')],
+            keywords=[
+              keyword(
+                arg='nargs',
+                value=Constant(value='*')),
+              keyword(
+                arg='default',
+                value=List(
+                  elts=[
+                    Constant(value='web_search')],
+                  ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value="Space-separated list of tools that the agent can use (e.g., 'tool1 tool2 tool3')"))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--verbosity-level')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='int', ctx=Load())),
+              keyword(
+                arg='default',
+                value=Constant(value=1)),
+              keyword(
+                arg='help',
+                value=Constant(value='The verbosity level, as an int in [0, 1, 2].'))])),
+        Assign(
+          targets=[
+            Name(id='group', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument_group',
+              ctx=Load()),
+            args=[
+              Constant(value='api options'),
+              Constant(value='Options for API-based model types')])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='group', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--provider')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='default',
+                value=Constant(value=None)),
+              keyword(
+                arg='help',
+                value=Constant(value='The inference provider to use for the model'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='group', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--api-base')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value='The base URL for the model'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='group', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--api-key')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value='The API key for the model'))])),
+        Return(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='parse_args',
+              ctx=Load())))]),
+    FunctionDef(
+      name='interactive_mode',
+      args=arguments(),
+      body=[
+        Expr(
+          value=Constant(value='Run the CLI in interactive mode')),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='console', ctx=Load()),
+              attr='print',
+              ctx=Load()),
+            args=[
+              Call(
+                func=Attribute(
+                  value=Name(id='Panel', ctx=Load()),
+                  attr='fit',
+                  ctx=Load()),
+                args=[
+                  Constant(value='[bold magenta]🤖 SmolaGents CLI[/]\n[dim]Intelligent agents at your service[/]')],
+                keywords=[
+                  keyword(
+                    arg='border_style',
+                    value=Constant(value='magenta'))])])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='console', ctx=Load()),
+              attr='print',
+              ctx=Load()),
+            args=[
+              Constant(value="\n[bold yellow]Welcome to smolagents![/] Let's set up your agent step by step.\n")])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='console', ctx=Load()),
+              attr='print',
+              ctx=Load()),
+            args=[
+              Call(
+                func=Name(id='Rule', ctx=Load()),
+                args=[
+                  Constant(value='[bold yellow]⚙️  Configuration')],
+                keywords=[
+                  keyword(
+                    arg='style',
+                    value=Constant(value='bold yellow'))])])),
+        Assign(
+          targets=[
+            Name(id='action_type', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='Prompt', ctx=Load()),
+              attr='ask',
+              ctx=Load()),
+            args=[
+              Constant(value="[bold white]What action type would you like to use? 'code' or 'tool_calling'?[/]")],
+            keywords=[
+              keyword(
+                arg='default',
+                value=Constant(value='code')),
+              keyword(
+                arg='choices',
+                value=List(
+                  elts=[
+                    Constant(value='code'),
+                    Constant(value='tool_calling')],
+                  ctx=Load()))])),
+        Assign(
+          targets=[
+            Name(id='tools_table', ctx=Store())],
+          value=Call(
+            func=Name(id='Table', ctx=Load()),
+            keywords=[
+              keyword(
+                arg='title',
+                value=Constant(value='[bold yellow]🛠️  Available Tools')),
+              keyword(
+                arg='show_header',
+                value=Constant(value=True)),
+              keyword(
+                arg='header_style',
+                value=Constant(value='bold yellow'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='tools_table', ctx=Load()),
+              attr='add_column',
+              ctx=Load()),
+            args=[
+              Constant(value='Tool Name')],
+            keywords=[
+              keyword(
+                arg='style',
+                value=Constant(value='bold yellow'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='tools_table', ctx=Load()),
+              attr='add_column',
+              ctx=Load()),
+            args=[
+              Constant(value='Description')],
+            keywords=[
+              keyword(
+                arg='style',
+                value=Constant(value='white'))])),
+        For(
+          target=Tuple(
+            elts=[
+              Name(id='tool_name', ctx=Store()),
+              Name(id='tool_class', ctx=Store())],
+            ctx=Store()),
+          iter=Call(
+            func=Attribute(
+              value=Name(id='TOOL_MAPPING', ctx=Load()),
+              attr='items',
+              ctx=Load())),
+          body=[
+            Try(
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='tool_instance', ctx=Store())],
+                  value=Call(
+                    func=Name(id='tool_class', ctx=Load()))),
+                Assign(
+                  targets=[
+                    Name(id='description', ctx=Store())],
+                  value=Call(
+                    func=Name(id='getattr', ctx=Load()),
+                    args=[
+                      Name(id='tool_instance', ctx=Load()),
+                      Constant(value='description'),
+                      Constant(value='No description available')]))],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='Exception', ctx=Load()),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='description', ctx=Store())],
+                      value=Constant(value='Built-in tool'))])]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='tools_table', ctx=Load()),
+                  attr='add_row',
+                  ctx=Load()),
+                args=[
+                  Name(id='tool_name', ctx=Load()),
+                  Name(id='description', ctx=Load())]))]),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='console', ctx=Load()),
+              attr='print',
+              ctx=Load()),
+            args=[
+              Name(id='tools_table', ctx=Load())])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='console', ctx=Load()),
+              attr='print',
+              ctx=Load()),
+            args=[
+              Constant(value="\n[dim]You can also use HuggingFace Spaces by providing the full path (e.g., 'username/spacename')[/]")])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='console', ctx=Load()),
+              attr='print',
+              ctx=Load()),
+            args=[
+              Constant(value="[dim]Enter tool names separated by spaces (e.g., 'web_search python_interpreter')[/]")])),
+        Assign(
+          targets=[
+            Name(id='tools_input', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='Prompt', ctx=Load()),
+              attr='ask',
+              ctx=Load()),
+            args=[
+              Constant(value='[bold white]Select tools for your agent[/]')],
+            keywords=[
+              keyword(
+                arg='default',
+                value=Constant(value='web_search'))])),
+        Assign(
+          targets=[
+            Name(id='tools', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='tools_input', ctx=Load()),
+              attr='split',
+              ctx=Load()))),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='console', ctx=Load()),
+              attr='print',
+              ctx=Load()),
+            args=[
+              Constant(value='\n[bold yellow]Model Configuration:[/]')])),
+        Assign(
+          targets=[
+            Name(id='model_type', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='Prompt', ctx=Load()),
+              attr='ask',
+              ctx=Load()),
+            args=[
+              Constant(value='[bold]Model type[/]')],
+            keywords=[
+              keyword(
+                arg='default',
+                value=Constant(value='InferenceClientModel')),
+              keyword(
+                arg='choices',
+                value=List(
+                  elts=[
+                    Constant(value='InferenceClientModel'),
+                    Constant(value='OpenAIServerModel'),
+                    Constant(value='LiteLLMModel'),
+                    Constant(value='TransformersModel')],
+                  ctx=Load()))])),
+        Assign(
+          targets=[
+            Name(id='model_id', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='Prompt', ctx=Load()),
+              attr='ask',
+              ctx=Load()),
+            args=[
+              Constant(value='[bold white]Model ID[/]')],
+            keywords=[
+              keyword(
+                arg='default',
+                value=Constant(value='Qwen/Qwen2.5-Coder-32B-Instruct'))])),
+        Assign(
+          targets=[
+            Name(id='provider', ctx=Store())],
+          value=Constant(value=None)),
+        Assign(
+          targets=[
+            Name(id='api_base', ctx=Store())],
+          value=Constant(value=None)),
+        Assign(
+          targets=[
+            Name(id='api_key', ctx=Store())],
+          value=Constant(value=None)),
+        Assign(
+          targets=[
+            Name(id='imports', ctx=Store())],
+          value=List(ctx=Load())),
+        Assign(
+          targets=[
+            Name(id='action_type', ctx=Store())],
+          value=Constant(value='code')),
+        If(
+          test=Call(
+            func=Attribute(
+              value=Name(id='Confirm', ctx=Load()),
+              attr='ask',
+              ctx=Load()),
+            args=[
+              Constant(value='\n[bold white]Configure advanced options?[/]')],
+            keywords=[
+              keyword(
+                arg='default',
+                value=Constant(value=False))]),
+          body=[
+            If(
+              test=Compare(
+                left=Name(id='model_type', ctx=Load()),
+                ops=[
+                  In()],
+                comparators=[
+                  List(
+                    elts=[
+                      Constant(value='InferenceClientModel'),
+                      Constant(value='OpenAIServerModel'),
+                      Constant(value='LiteLLMModel')],
+                    ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='provider', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='Prompt', ctx=Load()),
+                      attr='ask',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='[bold white]Provider[/]')],
+                    keywords=[
+                      keyword(
+                        arg='default',
+                        value=Constant(value=''))])),
+                Assign(
+                  targets=[
+                    Name(id='api_base', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='Prompt', ctx=Load()),
+                      attr='ask',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='[bold white]API Base URL[/]')],
+                    keywords=[
+                      keyword(
+                        arg='default',
+                        value=Constant(value=''))])),
+                Assign(
+                  targets=[
+                    Name(id='api_key', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='Prompt', ctx=Load()),
+                      attr='ask',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='[bold white]API Key[/]')],
+                    keywords=[
+                      keyword(
+                        arg='default',
+                        value=Constant(value='')),
+                      keyword(
+                        arg='password',
+                        value=Constant(value=True))]))]),
+            Assign(
+              targets=[
+                Name(id='imports_input', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='Prompt', ctx=Load()),
+                  attr='ask',
+                  ctx=Load()),
+                args=[
+                  Constant(value='[bold white]Additional imports (space-separated)[/]')],
+                keywords=[
+                  keyword(
+                    arg='default',
+                    value=Constant(value=''))])),
+            If(
+              test=Name(id='imports_input', ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='imports', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='imports_input', ctx=Load()),
+                      attr='split',
+                      ctx=Load())))])]),
+        Assign(
+          targets=[
+            Name(id='prompt', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='Prompt', ctx=Load()),
+              attr='ask',
+              ctx=Load()),
+            args=[
+              Constant(value='[bold white]Now the final step; what task would you like the agent to perform?[/]')],
+            keywords=[
+              keyword(
+                arg='default',
+                value=Name(id='leopard_prompt', ctx=Load()))])),
+        Return(
+          value=Tuple(
+            elts=[
+              Name(id='prompt', ctx=Load()),
+              Name(id='tools', ctx=Load()),
+              Name(id='model_type', ctx=Load()),
+              Name(id='model_id', ctx=Load()),
+              Name(id='provider', ctx=Load()),
+              Name(id='api_base', ctx=Load()),
+              Name(id='api_key', ctx=Load()),
+              Name(id='imports', ctx=Load()),
+              Name(id='action_type', ctx=Load())],
+            ctx=Load()))]),
+    FunctionDef(
+      name='load_model',
+      args=arguments(
+        args=[
+          arg(
+            arg='model_type',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='model_id',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='api_base',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='api_key',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='provider',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None)))],
+        defaults=[
+          Constant(value=None),
+          Constant(value=None),
+          Constant(value=None)]),
+      body=[
+        If(
+          test=Compare(
+            left=Name(id='model_type', ctx=Load()),
+            ops=[
+              Eq()],
+            comparators=[
+              Constant(value='OpenAIModel')]),
+          body=[
+            Return(
+              value=Call(
+                func=Name(id='OpenAIModel', ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='api_key',
+                    value=BoolOp(
+                      op=Or(),
+                      values=[
+                        Name(id='api_key', ctx=Load()),
+                        Call(
+                          func=Attribute(
+                            value=Name(id='os', ctx=Load()),
+                            attr='getenv',
+                            ctx=Load()),
+                          args=[
+                            Constant(value='FIREWORKS_API_KEY')])])),
+                  keyword(
+                    arg='api_base',
+                    value=BoolOp(
+                      op=Or(),
+                      values=[
+                        Name(id='api_base', ctx=Load()),
+                        Constant(value='https://api.fireworks.ai/inference/v1')])),
+                  keyword(
+                    arg='model_id',
+                    value=Name(id='model_id', ctx=Load()))]))],
+          orelse=[
+            If(
+              test=Compare(
+                left=Name(id='model_type', ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='LiteLLMModel')]),
+              body=[
+                Return(
+                  value=Call(
+                    func=Name(id='LiteLLMModel', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='model_id',
+                        value=Name(id='model_id', ctx=Load())),
+                      keyword(
+                        arg='api_key',
+                        value=Name(id='api_key', ctx=Load())),
+                      keyword(
+                        arg='api_base',
+                        value=Name(id='api_base', ctx=Load()))]))],
+              orelse=[
+                If(
+                  test=Compare(
+                    left=Name(id='model_type', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='TransformersModel')]),
+                  body=[
+                    Return(
+                      value=Call(
+                        func=Name(id='TransformersModel', ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='model_id',
+                            value=Name(id='model_id', ctx=Load())),
+                          keyword(
+                            arg='device_map',
+                            value=Constant(value='auto'))]))],
+                  orelse=[
+                    If(
+                      test=Compare(
+                        left=Name(id='model_type', ctx=Load()),
+                        ops=[
+                          Eq()],
+                        comparators=[
+                          Constant(value='InferenceClientModel')]),
+                      body=[
+                        Return(
+                          value=Call(
+                            func=Name(id='InferenceClientModel', ctx=Load()),
+                            keywords=[
+                              keyword(
+                                arg='model_id',
+                                value=Name(id='model_id', ctx=Load())),
+                              keyword(
+                                arg='token',
+                                value=BoolOp(
+                                  op=Or(),
+                                  values=[
+                                    Name(id='api_key', ctx=Load()),
+                                    Call(
+                                      func=Attribute(
+                                        value=Name(id='os', ctx=Load()),
+                                        attr='getenv',
+                                        ctx=Load()),
+                                      args=[
+                                        Constant(value='HF_API_KEY')])])),
+                              keyword(
+                                arg='provider',
+                                value=Name(id='provider', ctx=Load()))]))],
+                      orelse=[
+                        Raise(
+                          exc=Call(
+                            func=Name(id='ValueError', ctx=Load()),
+                            args=[
+                              JoinedStr(
+                                values=[
+                                  Constant(value='Unsupported model type: '),
+                                  FormattedValue(
+                                    value=Name(id='model_type', ctx=Load()),
+                                    conversion=-1)])]))])])])])],
+      returns=Name(id='Model', ctx=Load())),
+    FunctionDef(
+      name='run_smolagent',
+      args=arguments(
+        args=[
+          arg(
+            arg='prompt',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='tools',
+            annotation=Subscript(
+              value=Name(id='list', ctx=Load()),
+              slice=Name(id='str', ctx=Load()),
+              ctx=Load())),
+          arg(
+            arg='model_type',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='model_id',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='api_base',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='api_key',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='imports',
+            annotation=BinOp(
+              left=Subscript(
+                value=Name(id='list', ctx=Load()),
+                slice=Name(id='str', ctx=Load()),
+                ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='provider',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='action_type',
+            annotation=Name(id='str', ctx=Load()))],
+        defaults=[
+          Constant(value=None),
+          Constant(value=None),
+          Constant(value=None),
+          Constant(value=None),
+          Constant(value='code')]),
+      body=[
+        Expr(
+          value=Call(
+            func=Name(id='load_dotenv', ctx=Load()))),
+        Assign(
+          targets=[
+            Name(id='model', ctx=Store())],
+          value=Call(
+            func=Name(id='load_model', ctx=Load()),
+            args=[
+              Name(id='model_type', ctx=Load()),
+              Name(id='model_id', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='api_base',
+                value=Name(id='api_base', ctx=Load())),
+              keyword(
+                arg='api_key',
+                value=Name(id='api_key', ctx=Load())),
+              keyword(
+                arg='provider',
+                value=Name(id='provider', ctx=Load()))])),
+        Assign(
+          targets=[
+            Name(id='available_tools', ctx=Store())],
+          value=List(ctx=Load())),
+        For(
+          target=Name(id='tool_name', ctx=Store()),
+          iter=Name(id='tools', ctx=Load()),
+          body=[
+            If(
+              test=Compare(
+                left=Constant(value='/'),
+                ops=[
+                  In()],
+                comparators=[
+                  Name(id='tool_name', ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='space_name', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Attribute(
+                              value=Subscript(
+                                value=Call(
+                                  func=Attribute(
+                                    value=Name(id='tool_name', ctx=Load()),
+                                    attr='split',
+                                    ctx=Load()),
+                                  args=[
+                                    Constant(value='/')]),
+                                slice=UnaryOp(
+                                  op=USub(),
+                                  operand=Constant(value=1)),
+                                ctx=Load()),
+                              attr='lower',
+                              ctx=Load())),
+                          attr='replace',
+                          ctx=Load()),
+                        args=[
+                          Constant(value='-'),
+                          Constant(value='_')]),
+                      attr='replace',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='.'),
+                      Constant(value='_')])),
+                Assign(
+                  targets=[
+                    Name(id='description', ctx=Store())],
+                  value=JoinedStr(
+                    values=[
+                      Constant(value='Tool loaded from Hugging Face Space: '),
+                      FormattedValue(
+                        value=Name(id='tool_name', ctx=Load()),
+                        conversion=-1)])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='available_tools', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Call(
+                        func=Attribute(
+                          value=Name(id='Tool', ctx=Load()),
+                          attr='from_space',
+                          ctx=Load()),
+                        keywords=[
+                          keyword(
+                            arg='space_id',
+                            value=Name(id='tool_name', ctx=Load())),
+                          keyword(
+                            arg='name',
+                            value=Name(id='space_name', ctx=Load())),
+                          keyword(
+                            arg='description',
+                            value=Name(id='description', ctx=Load()))])]))],
+              orelse=[
+                If(
+                  test=Compare(
+                    left=Name(id='tool_name', ctx=Load()),
+                    ops=[
+                      In()],
+                    comparators=[
+                      Name(id='TOOL_MAPPING', ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='available_tools', ctx=Load()),
+                          attr='append',
+                          ctx=Load()),
+                        args=[
+                          Call(
+                            func=Subscript(
+                              value=Name(id='TOOL_MAPPING', ctx=Load()),
+                              slice=Name(id='tool_name', ctx=Load()),
+                              ctx=Load()))]))],
+                  orelse=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='ValueError', ctx=Load()),
+                        args=[
+                          JoinedStr(
+                            values=[
+                              Constant(value='Tool '),
+                              FormattedValue(
+                                value=Name(id='tool_name', ctx=Load()),
+                                conversion=-1),
+                              Constant(value=' is not recognized either as a default tool or a Space.')])]))])])]),
+        If(
+          test=Compare(
+            left=Name(id='action_type', ctx=Load()),
+            ops=[
+              Eq()],
+            comparators=[
+              Constant(value='code')]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='agent', ctx=Store())],
+              value=Call(
+                func=Name(id='CodeAgent', ctx=Load()),
+                keywords=[
+                  keyword(
+                    arg='tools',
+                    value=Name(id='available_tools', ctx=Load())),
+                  keyword(
+                    arg='model',
+                    value=Name(id='model', ctx=Load())),
+                  keyword(
+                    arg='additional_authorized_imports',
+                    value=Name(id='imports', ctx=Load())),
+                  keyword(
+                    arg='stream_outputs',
+                    value=Constant(value=True))]))],
+          orelse=[
+            If(
+              test=Compare(
+                left=Name(id='action_type', ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='tool_calling')]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='agent', ctx=Store())],
+                  value=Call(
+                    func=Name(id='ToolCallingAgent', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='tools',
+                        value=Name(id='available_tools', ctx=Load())),
+                      keyword(
+                        arg='model',
+                        value=Name(id='model', ctx=Load())),
+                      keyword(
+                        arg='stream_outputs',
+                        value=Constant(value=True))]))],
+              orelse=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ValueError', ctx=Load()),
+                    args=[
+                      JoinedStr(
+                        values=[
+                          Constant(value='Unsupported action type: '),
+                          FormattedValue(
+                            value=Name(id='action_type', ctx=Load()),
+                            conversion=-1)])]))])]),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='agent', ctx=Load()),
+              attr='run',
+              ctx=Load()),
+            args=[
+              Name(id='prompt', ctx=Load())]))],
+      returns=Constant(value=None)),
+    FunctionDef(
+      name='main',
+      args=arguments(),
+      body=[
+        Assign(
+          targets=[
+            Name(id='args', ctx=Store())],
+          value=Call(
+            func=Name(id='parse_arguments', ctx=Load()))),
+        If(
+          test=Compare(
+            left=Attribute(
+              value=Name(id='args', ctx=Load()),
+              attr='prompt',
+              ctx=Load()),
+            ops=[
+              Is()],
+            comparators=[
+              Constant(value=None)]),
+          body=[
+            Assign(
+              targets=[
+                Tuple(
+                  elts=[
+                    Name(id='prompt', ctx=Store()),
+                    Name(id='tools', ctx=Store()),
+                    Name(id='model_type', ctx=Store()),
+                    Name(id='model_id', ctx=Store()),
+                    Name(id='provider', ctx=Store()),
+                    Name(id='api_base', ctx=Store()),
+                    Name(id='api_key', ctx=Store()),
+                    Name(id='imports', ctx=Store()),
+                    Name(id='action_type', ctx=Store())],
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='interactive_mode', ctx=Load())))],
+          orelse=[
+            Assign(
+              targets=[
+                Name(id='prompt', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='prompt',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='tools', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='tools',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='model_type', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='model_type',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='model_id', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='model_id',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='provider', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='provider',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='api_base', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='api_base',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='api_key', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='api_key',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='imports', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='imports',
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='action_type', ctx=Store())],
+              value=Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='action_type',
+                ctx=Load()))]),
+        Expr(
+          value=Call(
+            func=Name(id='run_smolagent', ctx=Load()),
+            args=[
+              Name(id='prompt', ctx=Load()),
+              Name(id='tools', ctx=Load()),
+              Name(id='model_type', ctx=Load()),
+              Name(id='model_id', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='provider',
+                value=Name(id='provider', ctx=Load())),
+              keyword(
+                arg='api_base',
+                value=Name(id='api_base', ctx=Load())),
+              keyword(
+                arg='api_key',
+                value=Name(id='api_key', ctx=Load())),
+              keyword(
+                arg='imports',
+                value=Name(id='imports', ctx=Load())),
+              keyword(
+                arg='action_type',
+                value=Name(id='action_type', ctx=Load()))]))],
+      returns=Constant(value=None)),
+    If(
+      test=Compare(
+        left=Name(id='__name__', ctx=Load()),
+        ops=[
+          Eq()],
+        comparators=[
+          Constant(value='__main__')]),
+      body=[
+        Expr(
+          value=Call(
+            func=Name(id='main', ctx=Load())))])])

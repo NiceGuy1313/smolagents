@@ -1,0 +1,860 @@
+Module(
+  body=[
+    Import(
+      names=[
+        alias(name='argparse')]),
+    ImportFrom(
+      module='io',
+      names=[
+        alias(name='BytesIO')],
+      level=0),
+    ImportFrom(
+      module='time',
+      names=[
+        alias(name='sleep')],
+      level=0),
+    Import(
+      names=[
+        alias(name='helium')]),
+    Import(
+      names=[
+        alias(name='PIL.Image')]),
+    ImportFrom(
+      module='dotenv',
+      names=[
+        alias(name='load_dotenv')],
+      level=0),
+    ImportFrom(
+      module='selenium',
+      names=[
+        alias(name='webdriver')],
+      level=0),
+    ImportFrom(
+      module='selenium.webdriver.common.by',
+      names=[
+        alias(name='By')],
+      level=0),
+    ImportFrom(
+      module='selenium.webdriver.common.keys',
+      names=[
+        alias(name='Keys')],
+      level=0),
+    ImportFrom(
+      module='smolagents',
+      names=[
+        alias(name='CodeAgent'),
+        alias(name='WebSearchTool'),
+        alias(name='tool')],
+      level=0),
+    ImportFrom(
+      module='smolagents.agents',
+      names=[
+        alias(name='ActionStep')],
+      level=0),
+    ImportFrom(
+      module='smolagents.cli',
+      names=[
+        alias(name='load_model')],
+      level=0),
+    Assign(
+      targets=[
+        Name(id='github_request', ctx=Store())],
+      value=Constant(value="\nI'm trying to find how hard I have to work to get a repo in github.com/trending.\nCan you navigate to the profile for the top author of the top trending repo, and give me their total number of commits over the last year?\n")),
+    Assign(
+      targets=[
+        Name(id='search_request', ctx=Store())],
+      value=Constant(value='\nPlease navigate to https://en.wikipedia.org/wiki/Chicago and give me a sentence containing the word "1992" that mentions a construction accident.\n')),
+    FunctionDef(
+      name='parse_arguments',
+      args=arguments(),
+      body=[
+        Assign(
+          targets=[
+            Name(id='parser', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='argparse', ctx=Load()),
+              attr='ArgumentParser',
+              ctx=Load()),
+            keywords=[
+              keyword(
+                arg='description',
+                value=Constant(value='Run a web browser automation script with a specified model.'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='prompt')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='nargs',
+                value=Constant(value='?')),
+              keyword(
+                arg='default',
+                value=Name(id='search_request', ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value='The prompt to run with the agent'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--model-type')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='default',
+                value=Constant(value='LiteLLMModel')),
+              keyword(
+                arg='help',
+                value=Constant(value='The model type to use (e.g., OpenAIModel, LiteLLMModel, TransformersModel, InferenceClientModel)'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--model-id')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='default',
+                value=Constant(value='gpt-4o')),
+              keyword(
+                arg='help',
+                value=Constant(value='The model ID to use for the specified model type'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--provider')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value='The inference provider to use for the model'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--api-base')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value='The API base to use for the model'))])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--api-key')],
+            keywords=[
+              keyword(
+                arg='type',
+                value=Name(id='str', ctx=Load())),
+              keyword(
+                arg='help',
+                value=Constant(value='The API key to use for the model'))])),
+        Return(
+          value=Call(
+            func=Attribute(
+              value=Name(id='parser', ctx=Load()),
+              attr='parse_args',
+              ctx=Load())))]),
+    FunctionDef(
+      name='save_screenshot',
+      args=arguments(
+        args=[
+          arg(
+            arg='memory_step',
+            annotation=Name(id='ActionStep', ctx=Load())),
+          arg(
+            arg='agent',
+            annotation=Name(id='CodeAgent', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Call(
+            func=Name(id='sleep', ctx=Load()),
+            args=[
+              Constant(value=1.0)])),
+        Assign(
+          targets=[
+            Name(id='driver', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='helium', ctx=Load()),
+              attr='get_driver',
+              ctx=Load()))),
+        Assign(
+          targets=[
+            Name(id='current_step', ctx=Store())],
+          value=Attribute(
+            value=Name(id='memory_step', ctx=Load()),
+            attr='step_number',
+            ctx=Load())),
+        If(
+          test=Compare(
+            left=Name(id='driver', ctx=Load()),
+            ops=[
+              IsNot()],
+            comparators=[
+              Constant(value=None)]),
+          body=[
+            For(
+              target=Name(id='previous_memory_step', ctx=Store()),
+              iter=Attribute(
+                value=Attribute(
+                  value=Name(id='agent', ctx=Load()),
+                  attr='memory',
+                  ctx=Load()),
+                attr='steps',
+                ctx=Load()),
+              body=[
+                If(
+                  test=BoolOp(
+                    op=And(),
+                    values=[
+                      Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Name(id='previous_memory_step', ctx=Load()),
+                          Name(id='ActionStep', ctx=Load())]),
+                      Compare(
+                        left=Attribute(
+                          value=Name(id='previous_memory_step', ctx=Load()),
+                          attr='step_number',
+                          ctx=Load()),
+                        ops=[
+                          LtE()],
+                        comparators=[
+                          BinOp(
+                            left=Name(id='current_step', ctx=Load()),
+                            op=Sub(),
+                            right=Constant(value=2))])]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Attribute(
+                          value=Name(id='previous_memory_step', ctx=Load()),
+                          attr='observations_images',
+                          ctx=Store())],
+                      value=Constant(value=None))])]),
+            Assign(
+              targets=[
+                Name(id='png_bytes', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='driver', ctx=Load()),
+                  attr='get_screenshot_as_png',
+                  ctx=Load()))),
+            Assign(
+              targets=[
+                Name(id='image', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='PIL', ctx=Load()),
+                    attr='Image',
+                    ctx=Load()),
+                  attr='open',
+                  ctx=Load()),
+                args=[
+                  Call(
+                    func=Name(id='BytesIO', ctx=Load()),
+                    args=[
+                      Name(id='png_bytes', ctx=Load())])])),
+            Expr(
+              value=Call(
+                func=Name(id='print', ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      Constant(value='Captured a browser screenshot: '),
+                      FormattedValue(
+                        value=Attribute(
+                          value=Name(id='image', ctx=Load()),
+                          attr='size',
+                          ctx=Load()),
+                        conversion=-1),
+                      Constant(value=' pixels')])])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='memory_step', ctx=Load()),
+                  attr='observations_images',
+                  ctx=Store())],
+              value=List(
+                elts=[
+                  Call(
+                    func=Attribute(
+                      value=Name(id='image', ctx=Load()),
+                      attr='copy',
+                      ctx=Load()))],
+                ctx=Load()))]),
+        Assign(
+          targets=[
+            Name(id='url_info', ctx=Store())],
+          value=JoinedStr(
+            values=[
+              Constant(value='Current url: '),
+              FormattedValue(
+                value=Attribute(
+                  value=Name(id='driver', ctx=Load()),
+                  attr='current_url',
+                  ctx=Load()),
+                conversion=-1)])),
+        Assign(
+          targets=[
+            Attribute(
+              value=Name(id='memory_step', ctx=Load()),
+              attr='observations',
+              ctx=Store())],
+          value=IfExp(
+            test=Compare(
+              left=Attribute(
+                value=Name(id='memory_step', ctx=Load()),
+                attr='observations',
+                ctx=Load()),
+              ops=[
+                Is()],
+              comparators=[
+                Constant(value=None)]),
+            body=Name(id='url_info', ctx=Load()),
+            orelse=BinOp(
+              left=BinOp(
+                left=Attribute(
+                  value=Name(id='memory_step', ctx=Load()),
+                  attr='observations',
+                  ctx=Load()),
+                op=Add(),
+                right=Constant(value='\n')),
+              op=Add(),
+              right=Name(id='url_info', ctx=Load())))),
+        Return()],
+      returns=Constant(value=None)),
+    FunctionDef(
+      name='_escape_xpath_string',
+      args=arguments(
+        args=[
+          arg(
+            arg='s',
+            annotation=Name(id='str', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Escapes a string for safe use in an XPath expression.\n\n    Args:\n        s (`str`): Arbitrary input string to escape.\n\n    Returns:\n        `str`: Valid XPath expression representing the literal value of `s`.\n    ')),
+        If(
+          test=Compare(
+            left=Constant(value="'"),
+            ops=[
+              NotIn()],
+            comparators=[
+              Name(id='s', ctx=Load())]),
+          body=[
+            Return(
+              value=JoinedStr(
+                values=[
+                  Constant(value="'"),
+                  FormattedValue(
+                    value=Name(id='s', ctx=Load()),
+                    conversion=-1),
+                  Constant(value="'")]))]),
+        If(
+          test=Compare(
+            left=Constant(value='"'),
+            ops=[
+              NotIn()],
+            comparators=[
+              Name(id='s', ctx=Load())]),
+          body=[
+            Return(
+              value=JoinedStr(
+                values=[
+                  Constant(value='"'),
+                  FormattedValue(
+                    value=Name(id='s', ctx=Load()),
+                    conversion=-1),
+                  Constant(value='"')]))]),
+        Assign(
+          targets=[
+            Name(id='parts', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='s', ctx=Load()),
+              attr='split',
+              ctx=Load()),
+            args=[
+              Constant(value="'")])),
+        Return(
+          value=BinOp(
+            left=BinOp(
+              left=Constant(value='concat('),
+              op=Add(),
+              right=Call(
+                func=Attribute(
+                  value=Constant(value=', "\'", '),
+                  attr='join',
+                  ctx=Load()),
+                args=[
+                  GeneratorExp(
+                    elt=JoinedStr(
+                      values=[
+                        Constant(value="'"),
+                        FormattedValue(
+                          value=Name(id='p', ctx=Load()),
+                          conversion=-1),
+                        Constant(value="'")]),
+                    generators=[
+                      comprehension(
+                        target=Name(id='p', ctx=Store()),
+                        iter=Name(id='parts', ctx=Load()),
+                        is_async=0)])])),
+            op=Add(),
+            right=Constant(value=')')))],
+      returns=Name(id='str', ctx=Load())),
+    FunctionDef(
+      name='search_item_ctrl_f',
+      args=arguments(
+        args=[
+          arg(
+            arg='text',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='nth_result',
+            annotation=Name(id='int', ctx=Load()))],
+        defaults=[
+          Constant(value=1)]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Searches for text on the current page via Ctrl + F and jumps to the nth occurrence.\n    Args:\n        text: The text to search for\n        nth_result: Which occurrence to jump to (default: 1)\n    ')),
+        Assign(
+          targets=[
+            Name(id='escaped_text', ctx=Store())],
+          value=Call(
+            func=Name(id='_escape_xpath_string', ctx=Load()),
+            args=[
+              Name(id='text', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='elements', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='driver', ctx=Load()),
+              attr='find_elements',
+              ctx=Load()),
+            args=[
+              Attribute(
+                value=Name(id='By', ctx=Load()),
+                attr='XPATH',
+                ctx=Load()),
+              JoinedStr(
+                values=[
+                  Constant(value='//*[contains(text(), '),
+                  FormattedValue(
+                    value=Name(id='escaped_text', ctx=Load()),
+                    conversion=-1),
+                  Constant(value=')]')])])),
+        If(
+          test=Compare(
+            left=Name(id='nth_result', ctx=Load()),
+            ops=[
+              Gt()],
+            comparators=[
+              Call(
+                func=Name(id='len', ctx=Load()),
+                args=[
+                  Name(id='elements', ctx=Load())])]),
+          body=[
+            Raise(
+              exc=Call(
+                func=Name(id='Exception', ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      Constant(value='Match n°'),
+                      FormattedValue(
+                        value=Name(id='nth_result', ctx=Load()),
+                        conversion=-1),
+                      Constant(value=' not found (only '),
+                      FormattedValue(
+                        value=Call(
+                          func=Name(id='len', ctx=Load()),
+                          args=[
+                            Name(id='elements', ctx=Load())]),
+                        conversion=-1),
+                      Constant(value=' matches found)')])]))]),
+        Assign(
+          targets=[
+            Name(id='result', ctx=Store())],
+          value=JoinedStr(
+            values=[
+              Constant(value='Found '),
+              FormattedValue(
+                value=Call(
+                  func=Name(id='len', ctx=Load()),
+                  args=[
+                    Name(id='elements', ctx=Load())]),
+                conversion=-1),
+              Constant(value=" matches for '"),
+              FormattedValue(
+                value=Name(id='text', ctx=Load()),
+                conversion=-1),
+              Constant(value="'.")])),
+        Assign(
+          targets=[
+            Name(id='elem', ctx=Store())],
+          value=Subscript(
+            value=Name(id='elements', ctx=Load()),
+            slice=BinOp(
+              left=Name(id='nth_result', ctx=Load()),
+              op=Sub(),
+              right=Constant(value=1)),
+            ctx=Load())),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='driver', ctx=Load()),
+              attr='execute_script',
+              ctx=Load()),
+            args=[
+              Constant(value='arguments[0].scrollIntoView(true);'),
+              Name(id='elem', ctx=Load())])),
+        AugAssign(
+          target=Name(id='result', ctx=Store()),
+          op=Add(),
+          value=JoinedStr(
+            values=[
+              Constant(value='Focused on element '),
+              FormattedValue(
+                value=Name(id='nth_result', ctx=Load()),
+                conversion=-1),
+              Constant(value=' of '),
+              FormattedValue(
+                value=Call(
+                  func=Name(id='len', ctx=Load()),
+                  args=[
+                    Name(id='elements', ctx=Load())]),
+                conversion=-1)])),
+        Return(
+          value=Name(id='result', ctx=Load()))],
+      decorator_list=[
+        Name(id='tool', ctx=Load())],
+      returns=Name(id='str', ctx=Load())),
+    FunctionDef(
+      name='go_back',
+      args=arguments(),
+      body=[
+        Expr(
+          value=Constant(value='Goes back to previous page.')),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='driver', ctx=Load()),
+              attr='back',
+              ctx=Load())))],
+      decorator_list=[
+        Name(id='tool', ctx=Load())],
+      returns=Constant(value=None)),
+    FunctionDef(
+      name='close_popups',
+      args=arguments(),
+      body=[
+        Expr(
+          value=Constant(value='\n    Closes any visible modal or pop-up on the page. Use this to dismiss pop-up windows! This does not work on cookie consent banners.\n    ')),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Call(
+                func=Attribute(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='webdriver', ctx=Load()),
+                      attr='ActionChains',
+                      ctx=Load()),
+                    args=[
+                      Name(id='driver', ctx=Load())]),
+                  attr='send_keys',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='Keys', ctx=Load()),
+                    attr='ESCAPE',
+                    ctx=Load())]),
+              attr='perform',
+              ctx=Load())))],
+      decorator_list=[
+        Name(id='tool', ctx=Load())],
+      returns=Name(id='str', ctx=Load())),
+    FunctionDef(
+      name='initialize_driver',
+      args=arguments(),
+      body=[
+        Expr(
+          value=Constant(value='Initialize the Selenium WebDriver.')),
+        Assign(
+          targets=[
+            Name(id='chrome_options', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='webdriver', ctx=Load()),
+              attr='ChromeOptions',
+              ctx=Load()))),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='chrome_options', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--force-device-scale-factor=1')])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='chrome_options', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--window-size=1000,1350')])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='chrome_options', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--disable-pdf-viewer')])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='chrome_options', ctx=Load()),
+              attr='add_argument',
+              ctx=Load()),
+            args=[
+              Constant(value='--window-position=0,0')])),
+        Return(
+          value=Call(
+            func=Attribute(
+              value=Name(id='helium', ctx=Load()),
+              attr='start_chrome',
+              ctx=Load()),
+            keywords=[
+              keyword(
+                arg='headless',
+                value=Constant(value=False)),
+              keyword(
+                arg='options',
+                value=Name(id='chrome_options', ctx=Load()))]))]),
+    FunctionDef(
+      name='initialize_agent',
+      args=arguments(
+        args=[
+          arg(arg='model')]),
+      body=[
+        Expr(
+          value=Constant(value='Initialize the CodeAgent with the specified model.')),
+        Return(
+          value=Call(
+            func=Name(id='CodeAgent', ctx=Load()),
+            keywords=[
+              keyword(
+                arg='tools',
+                value=List(
+                  elts=[
+                    Call(
+                      func=Name(id='WebSearchTool', ctx=Load())),
+                    Name(id='go_back', ctx=Load()),
+                    Name(id='close_popups', ctx=Load()),
+                    Name(id='search_item_ctrl_f', ctx=Load())],
+                  ctx=Load())),
+              keyword(
+                arg='model',
+                value=Name(id='model', ctx=Load())),
+              keyword(
+                arg='additional_authorized_imports',
+                value=List(
+                  elts=[
+                    Constant(value='helium')],
+                  ctx=Load())),
+              keyword(
+                arg='step_callbacks',
+                value=List(
+                  elts=[
+                    Name(id='save_screenshot', ctx=Load())],
+                  ctx=Load())),
+              keyword(
+                arg='max_steps',
+                value=Constant(value=20)),
+              keyword(
+                arg='verbosity_level',
+                value=Constant(value=2))]))]),
+    Assign(
+      targets=[
+        Name(id='helium_instructions', ctx=Store())],
+      value=Constant(value='\nUse your web_search tool when you want to get Google search results.\nThen you can use helium to access websites. Don\'t use helium for Google search, only for navigating websites!\nDon\'t bother about the helium driver, it\'s already managed.\nWe\'ve already ran "from helium import *"\nThen you can go to pages!\n<code>\ngo_to(\'github.com/trending\')\n</code>\n\nYou can directly click clickable elements by inputting the text that appears on them.\n<code>\nclick("Top products")\n</code>\n\nIf it\'s a link:\n<code>\nclick(Link("Top products"))\n</code>\n\nIf you try to interact with an element and it\'s not found, you\'ll get a LookupError.\nIn general stop your action after each button click to see what happens on your screenshot.\nNever try to login in a page.\n\nTo scroll up or down, use scroll_down or scroll_up with as an argument the number of pixels to scroll from.\n<code>\nscroll_down(num_pixels=1200) # This will scroll one viewport down\n</code>\n\nWhen you have pop-ups with a cross icon to close, don\'t try to click the close icon by finding its element or targeting an \'X\' element (this most often fails).\nJust use your built-in tool `close_popups` to close them:\n<code>\nclose_popups()\n</code>\n\nYou can use .exists() to check for the existence of an element. For example:\n<code>\nif Text(\'Accept cookies?\').exists():\n    click(\'I accept\')\n</code>\n\nProceed in several steps rather than trying to solve the task in one shot.\nAnd at the end, only when you have your answer, return your final answer.\n<code>\nfinal_answer("YOUR_ANSWER_HERE")\n</code>\n\nIf pages seem stuck on loading, you might have to wait, for instance `import time` and run `time.sleep(5.0)`. But don\'t overuse this!\nTo list elements on page, DO NOT try code-based element searches like \'contributors = find_all(S("ol > li"))\': just look at the latest screenshot you have and read it visually, or use your tool search_item_ctrl_f.\nOf course, you can act on buttons like a user would do when navigating.\nAfter each code blob you write, you will be automatically provided with an updated screenshot of the browser and the current browser url.\nBut beware that the screenshot will only be taken at the end of the whole action, it won\'t see intermediate states.\nDon\'t kill the browser.\nWhen you have modals or cookie banners on screen, you should get rid of them before you can click anything else.\n')),
+    FunctionDef(
+      name='run_webagent',
+      args=arguments(
+        args=[
+          arg(
+            arg='prompt',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='model_type',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='model_id',
+            annotation=Name(id='str', ctx=Load())),
+          arg(
+            arg='provider',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='api_base',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))),
+          arg(
+            arg='api_key',
+            annotation=BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None)))],
+        defaults=[
+          Constant(value=None),
+          Constant(value=None),
+          Constant(value=None)]),
+      body=[
+        Expr(
+          value=Call(
+            func=Name(id='load_dotenv', ctx=Load()))),
+        Assign(
+          targets=[
+            Name(id='model', ctx=Store())],
+          value=Call(
+            func=Name(id='load_model', ctx=Load()),
+            args=[
+              Name(id='model_type', ctx=Load()),
+              Name(id='model_id', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='provider',
+                value=Name(id='provider', ctx=Load())),
+              keyword(
+                arg='api_base',
+                value=Name(id='api_base', ctx=Load())),
+              keyword(
+                arg='api_key',
+                value=Name(id='api_key', ctx=Load()))])),
+        Global(
+          names=[
+            'driver']),
+        Assign(
+          targets=[
+            Name(id='driver', ctx=Store())],
+          value=Call(
+            func=Name(id='initialize_driver', ctx=Load()))),
+        Assign(
+          targets=[
+            Name(id='agent', ctx=Store())],
+          value=Call(
+            func=Name(id='initialize_agent', ctx=Load()),
+            args=[
+              Name(id='model', ctx=Load())])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='agent', ctx=Load()),
+              attr='python_executor',
+              ctx=Load()),
+            args=[
+              Constant(value='from helium import *')])),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='agent', ctx=Load()),
+              attr='run',
+              ctx=Load()),
+            args=[
+              BinOp(
+                left=Name(id='prompt', ctx=Load()),
+                op=Add(),
+                right=Name(id='helium_instructions', ctx=Load()))]))],
+      returns=Constant(value=None)),
+    FunctionDef(
+      name='main',
+      args=arguments(),
+      body=[
+        Assign(
+          targets=[
+            Name(id='args', ctx=Store())],
+          value=Call(
+            func=Name(id='parse_arguments', ctx=Load()))),
+        Expr(
+          value=Call(
+            func=Name(id='run_webagent', ctx=Load()),
+            args=[
+              Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='prompt',
+                ctx=Load()),
+              Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='model_type',
+                ctx=Load()),
+              Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='model_id',
+                ctx=Load()),
+              Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='provider',
+                ctx=Load()),
+              Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='api_base',
+                ctx=Load()),
+              Attribute(
+                value=Name(id='args', ctx=Load()),
+                attr='api_key',
+                ctx=Load())]))],
+      returns=Constant(value=None)),
+    If(
+      test=Compare(
+        left=Name(id='__name__', ctx=Load()),
+        ops=[
+          Eq()],
+        comparators=[
+          Constant(value='__main__')]),
+      body=[
+        Expr(
+          value=Call(
+            func=Name(id='main', ctx=Load())))])])

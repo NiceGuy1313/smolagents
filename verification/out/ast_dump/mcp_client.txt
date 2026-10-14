@@ -1,0 +1,415 @@
+Module(
+  body=[
+    ImportFrom(
+      module='__future__',
+      names=[
+        alias(name='annotations')],
+      level=0),
+    Import(
+      names=[
+        alias(name='warnings')]),
+    ImportFrom(
+      module='types',
+      names=[
+        alias(name='TracebackType')],
+      level=0),
+    ImportFrom(
+      module='typing',
+      names=[
+        alias(name='TYPE_CHECKING'),
+        alias(name='Any')],
+      level=0),
+    ImportFrom(
+      module='smolagents.tools',
+      names=[
+        alias(name='Tool')],
+      level=0),
+    Assign(
+      targets=[
+        Name(id='__all__', ctx=Store())],
+      value=List(
+        elts=[
+          Constant(value='MCPClient')],
+        ctx=Load())),
+    If(
+      test=Name(id='TYPE_CHECKING', ctx=Load()),
+      body=[
+        ImportFrom(
+          module='mcpadapt.core',
+          names=[
+            alias(name='StdioServerParameters')],
+          level=0)]),
+    ClassDef(
+      name='MCPClient',
+      body=[
+        Expr(
+          value=Constant(value='Manages the connection to an MCP server and make its tools available to SmolAgents.\n\n    Note: tools can only be accessed after the connection has been started with the\n        `connect()` method, done during the init. If you don\'t use the context manager\n        we strongly encourage to use "try ... finally" to ensure the connection is cleaned up.\n\n    Args:\n        server_parameters (StdioServerParameters | dict[str, Any] | list[StdioServerParameters | dict[str, Any]]):\n            Configuration parameters to connect to the MCP server. Can be a list if you want to connect multiple MCPs at once.\n\n            - An instance of `mcp.StdioServerParameters` for connecting a Stdio MCP server via standard input/output using a subprocess.\n\n            - A `dict` with at least:\n              - "url": URL of the server.\n              - "transport": Transport protocol to use, one of:\n                - "streamable-http": Streamable HTTP transport (default).\n                - "sse": Legacy HTTP+SSE transport (deprecated).\n        adapter_kwargs (dict[str, Any], optional):\n            Additional keyword arguments to be passed directly to `MCPAdapt`.\n        structured_output (bool, optional, defaults to False):\n            Whether to enable structured output features for MCP tools. If True, enables:\n            - Support for outputSchema in MCP tools\n            - Structured content handling (structuredContent from MCP responses)\n            - JSON parsing fallback for structured data\n            If False, uses the original simple text-only behavior for backwards compatibility.\n\n    Example:\n        ```python\n        # fully managed context manager + stdio\n        with MCPClient(...) as tools:\n            # tools are now available\n\n        # context manager + Streamable HTTP transport:\n        with MCPClient({"url": "http://localhost:8000/mcp", "transport": "streamable-http"}) as tools:\n            # tools are now available\n\n        # Enable structured output for advanced MCP tools:\n        with MCPClient(server_parameters, structured_output=True) as tools:\n            # tools with structured output support are now available\n\n        # manually manage the connection via the mcp_client object:\n        try:\n            mcp_client = MCPClient(...)\n            tools = mcp_client.get_tools()\n\n            # use your tools here.\n        finally:\n            mcp_client.disconnect()\n        ```\n    ')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='server_parameters',
+                annotation=BinOp(
+                  left=BinOp(
+                    left=Constant(value='StdioServerParameters'),
+                    op=BitOr(),
+                    right=Subscript(
+                      value=Name(id='dict', ctx=Load()),
+                      slice=Tuple(
+                        elts=[
+                          Name(id='str', ctx=Load()),
+                          Name(id='Any', ctx=Load())],
+                        ctx=Load()),
+                      ctx=Load())),
+                  op=BitOr(),
+                  right=Subscript(
+                    value=Name(id='list', ctx=Load()),
+                    slice=BinOp(
+                      left=Constant(value='StdioServerParameters'),
+                      op=BitOr(),
+                      right=Subscript(
+                        value=Name(id='dict', ctx=Load()),
+                        slice=Tuple(
+                          elts=[
+                            Name(id='str', ctx=Load()),
+                            Name(id='Any', ctx=Load())],
+                          ctx=Load()),
+                        ctx=Load())),
+                    ctx=Load()))),
+              arg(
+                arg='adapter_kwargs',
+                annotation=BinOp(
+                  left=Subscript(
+                    value=Name(id='dict', ctx=Load()),
+                    slice=Tuple(
+                      elts=[
+                        Name(id='str', ctx=Load()),
+                        Name(id='Any', ctx=Load())],
+                      ctx=Load()),
+                    ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(
+                arg='structured_output',
+                annotation=BinOp(
+                  left=Name(id='bool', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))],
+            defaults=[
+              Constant(value=None),
+              Constant(value=None)]),
+          body=[
+            If(
+              test=Compare(
+                left=Name(id='structured_output', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='warnings', ctx=Load()),
+                      attr='warn',
+                      ctx=Load()),
+                    args=[
+                      Constant(value="Parameter 'structured_output' was not specified. Currently it defaults to False, but in version 1.25, the default will change to True. To suppress this warning, explicitly set structured_output=True (new behavior) or structured_output=False (legacy behavior). See documentation at https://huggingface.co/docs/smolagents/tutorials/tools#structured-output-and-output-schema-support for more details."),
+                      Name(id='FutureWarning', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='stacklevel',
+                        value=Constant(value=2))])),
+                Assign(
+                  targets=[
+                    Name(id='structured_output', ctx=Store())],
+                  value=Constant(value=False))]),
+            Try(
+              body=[
+                ImportFrom(
+                  module='mcpadapt.core',
+                  names=[
+                    alias(name='MCPAdapt')],
+                  level=0),
+                ImportFrom(
+                  module='mcpadapt.smolagents_adapter',
+                  names=[
+                    alias(name='SmolAgentsAdapter')],
+                  level=0)],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='ModuleNotFoundError', ctx=Load()),
+                  body=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='ModuleNotFoundError', ctx=Load()),
+                        args=[
+                          Constant(value="Please install 'mcp' extra to use MCPClient: `pip install 'smolagents[mcp]'`")]))])]),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='server_parameters', ctx=Load()),
+                  Name(id='dict', ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='transport', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='server_parameters', ctx=Load()),
+                      attr='get',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='transport')])),
+                If(
+                  test=Compare(
+                    left=Name(id='transport', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Constant(value=None)]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='transport', ctx=Store())],
+                      value=Constant(value='streamable-http')),
+                    Assign(
+                      targets=[
+                        Subscript(
+                          value=Name(id='server_parameters', ctx=Load()),
+                          slice=Constant(value='transport'),
+                          ctx=Store())],
+                      value=Name(id='transport', ctx=Load()))]),
+                If(
+                  test=Compare(
+                    left=Name(id='transport', ctx=Load()),
+                    ops=[
+                      NotIn()],
+                    comparators=[
+                      Set(
+                        elts=[
+                          Constant(value='sse'),
+                          Constant(value='streamable-http')])]),
+                  body=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='ValueError', ctx=Load()),
+                        args=[
+                          JoinedStr(
+                            values=[
+                              Constant(value='Unsupported transport: '),
+                              FormattedValue(
+                                value=Name(id='transport', ctx=Load()),
+                                conversion=-1),
+                              Constant(value=". Supported transports are 'streamable-http' and 'sse'.")])]))])]),
+            Assign(
+              targets=[
+                Name(id='adapter_kwargs', ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Name(id='adapter_kwargs', ctx=Load()),
+                  Dict()])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_adapter',
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='MCPAdapt', ctx=Load()),
+                args=[
+                  Name(id='server_parameters', ctx=Load()),
+                  Call(
+                    func=Name(id='SmolAgentsAdapter', ctx=Load()),
+                    keywords=[
+                      keyword(
+                        arg='structured_output',
+                        value=Name(id='structured_output', ctx=Load()))])],
+                keywords=[
+                  keyword(
+                    value=Name(id='adapter_kwargs', ctx=Load()))])),
+            AnnAssign(
+              target=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='_tools',
+                ctx=Store()),
+              annotation=BinOp(
+                left=Subscript(
+                  value=Name(id='list', ctx=Load()),
+                  slice=Name(id='Tool', ctx=Load()),
+                  ctx=Load()),
+                op=BitOr(),
+                right=Constant(value=None)),
+              value=Constant(value=None),
+              simple=0),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='connect',
+                  ctx=Load())))]),
+        FunctionDef(
+          name='connect',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value='Connect to the MCP server and initialize the tools.')),
+            AnnAssign(
+              target=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='_tools',
+                ctx=Store()),
+              annotation=Subscript(
+                value=Name(id='list', ctx=Load()),
+                slice=Name(id='Tool', ctx=Load()),
+                ctx=Load()),
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_adapter',
+                    ctx=Load()),
+                  attr='__enter__',
+                  ctx=Load())),
+              simple=0)]),
+        FunctionDef(
+          name='disconnect',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='exc_type',
+                annotation=BinOp(
+                  left=Subscript(
+                    value=Name(id='type', ctx=Load()),
+                    slice=Name(id='BaseException', ctx=Load()),
+                    ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(
+                arg='exc_value',
+                annotation=BinOp(
+                  left=Name(id='BaseException', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(
+                arg='exc_traceback',
+                annotation=BinOp(
+                  left=Name(id='TracebackType', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))],
+            defaults=[
+              Constant(value=None),
+              Constant(value=None),
+              Constant(value=None)]),
+          body=[
+            Expr(
+              value=Constant(value='Disconnect from the MCP server')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='_adapter',
+                    ctx=Load()),
+                  attr='__exit__',
+                  ctx=Load()),
+                args=[
+                  Name(id='exc_type', ctx=Load()),
+                  Name(id='exc_value', ctx=Load()),
+                  Name(id='exc_traceback', ctx=Load())]))]),
+        FunctionDef(
+          name='get_tools',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value='The SmolAgents tools available from the MCP server.\n\n        Note: for now, this always returns the tools available at the creation of the session,\n        but it will in a future release return also new tools available from the MCP server if\n        any at call time.\n\n        Raises:\n            ValueError: If the MCP server tools is None (usually assuming the server is not started).\n\n        Returns:\n            list[Tool]: The SmolAgents tools available from the MCP server.\n        ')),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_tools',
+                  ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='ValueError', ctx=Load()),
+                    args=[
+                      Constant(value="Couldn't retrieve tools from MCP server, run `mcp_client.connect()` first before accessing `tools`")]))]),
+            Return(
+              value=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='_tools',
+                ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='Tool', ctx=Load()),
+            ctx=Load())),
+        FunctionDef(
+          name='__enter__',
+          args=arguments(
+            args=[
+              arg(arg='self')]),
+          body=[
+            Expr(
+              value=Constant(value='Connect to the MCP server and return the tools directly.\n\n        Note that because of the `.connect` in the init, the mcp_client\n        is already connected at this point.\n        ')),
+            Return(
+              value=Attribute(
+                value=Name(id='self', ctx=Load()),
+                attr='_tools',
+                ctx=Load()))],
+          returns=Subscript(
+            value=Name(id='list', ctx=Load()),
+            slice=Name(id='Tool', ctx=Load()),
+            ctx=Load())),
+        FunctionDef(
+          name='__exit__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='exc_type',
+                annotation=BinOp(
+                  left=Subscript(
+                    value=Name(id='type', ctx=Load()),
+                    slice=Name(id='BaseException', ctx=Load()),
+                    ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(
+                arg='exc_value',
+                annotation=BinOp(
+                  left=Name(id='BaseException', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None))),
+              arg(
+                arg='exc_traceback',
+                annotation=BinOp(
+                  left=Name(id='TracebackType', ctx=Load()),
+                  op=BitOr(),
+                  right=Constant(value=None)))]),
+          body=[
+            Expr(
+              value=Constant(value='Disconnect from the MCP server.')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='disconnect',
+                  ctx=Load()),
+                args=[
+                  Name(id='exc_type', ctx=Load()),
+                  Name(id='exc_value', ctx=Load()),
+                  Name(id='exc_traceback', ctx=Load())]))])])])

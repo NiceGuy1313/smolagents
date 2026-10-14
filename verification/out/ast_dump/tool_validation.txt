@@ -1,0 +1,1992 @@
+Module(
+  body=[
+    Import(
+      names=[
+        alias(name='ast')]),
+    Import(
+      names=[
+        alias(name='builtins')]),
+    ImportFrom(
+      module='itertools',
+      names=[
+        alias(name='zip_longest')],
+      level=0),
+    ImportFrom(
+      module='utils',
+      names=[
+        alias(name='BASE_BUILTIN_MODULES'),
+        alias(name='get_source'),
+        alias(name='is_valid_name')],
+      level=1),
+    Assign(
+      targets=[
+        Name(id='_BUILTIN_NAMES', ctx=Store())],
+      value=Call(
+        func=Name(id='set', ctx=Load()),
+        args=[
+          Call(
+            func=Name(id='vars', ctx=Load()),
+            args=[
+              Name(id='builtins', ctx=Load())])])),
+    ClassDef(
+      name='MethodChecker',
+      bases=[
+        Attribute(
+          value=Name(id='ast', ctx=Load()),
+          attr='NodeVisitor',
+          ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='\n    Checks that a method\n    - only uses defined names\n    - contains no local imports (e.g. numpy is ok but local_script is not)\n    ')),
+        FunctionDef(
+          name='__init__',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(
+                arg='class_attributes',
+                annotation=Subscript(
+                  value=Name(id='set', ctx=Load()),
+                  slice=Name(id='str', ctx=Load()),
+                  ctx=Load())),
+              arg(
+                arg='check_imports',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=True)]),
+          body=[
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='undefined_names',
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='set', ctx=Load()))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='imports',
+                  ctx=Store())],
+              value=Dict()),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='from_imports',
+                  ctx=Store())],
+              value=Dict()),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='assigned_names',
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='set', ctx=Load()))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='arg_names',
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='set', ctx=Load()))),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='class_attributes',
+                  ctx=Store())],
+              value=Name(id='class_attributes', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='errors',
+                  ctx=Store())],
+              value=List(ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='check_imports',
+                  ctx=Store())],
+              value=Name(id='check_imports', ctx=Load())),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='typing_names',
+                  ctx=Store())],
+              value=Set(
+                elts=[
+                  Constant(value='Any')])),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='defined_classes',
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='set', ctx=Load())))]),
+        FunctionDef(
+          name='visit_arguments',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value='Collect function arguments')),
+            Assign(
+              targets=[
+                Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='arg_names',
+                  ctx=Store())],
+              value=SetComp(
+                elt=Attribute(
+                  value=Name(id='arg', ctx=Load()),
+                  attr='arg',
+                  ctx=Load()),
+                generators=[
+                  comprehension(
+                    target=Name(id='arg', ctx=Store()),
+                    iter=Attribute(
+                      value=Name(id='node', ctx=Load()),
+                      attr='args',
+                      ctx=Load()),
+                    is_async=0)])),
+            If(
+              test=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='kwarg',
+                ctx=Load()),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='arg_names',
+                        ctx=Load()),
+                      attr='add',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Attribute(
+                          value=Name(id='node', ctx=Load()),
+                          attr='kwarg',
+                          ctx=Load()),
+                        attr='arg',
+                        ctx=Load())]))]),
+            If(
+              test=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='vararg',
+                ctx=Load()),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='arg_names',
+                        ctx=Load()),
+                      attr='add',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Attribute(
+                          value=Name(id='node', ctx=Load()),
+                          attr='vararg',
+                          ctx=Load()),
+                        attr='arg',
+                        ctx=Load())]))])]),
+        FunctionDef(
+          name='visit_Import',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            For(
+              target=Name(id='name', ctx=Store()),
+              iter=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='names',
+                ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='actual_name', ctx=Store())],
+                  value=BoolOp(
+                    op=Or(),
+                    values=[
+                      Attribute(
+                        value=Name(id='name', ctx=Load()),
+                        attr='asname',
+                        ctx=Load()),
+                      Attribute(
+                        value=Name(id='name', ctx=Load()),
+                        attr='name',
+                        ctx=Load())])),
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='imports',
+                        ctx=Load()),
+                      slice=Name(id='actual_name', ctx=Load()),
+                      ctx=Store())],
+                  value=Attribute(
+                    value=Name(id='name', ctx=Load()),
+                    attr='name',
+                    ctx=Load()))])]),
+        FunctionDef(
+          name='visit_ImportFrom',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='module', ctx=Store())],
+              value=BoolOp(
+                op=Or(),
+                values=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='module',
+                    ctx=Load()),
+                  Constant(value='')])),
+            For(
+              target=Name(id='name', ctx=Store()),
+              iter=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='names',
+                ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='actual_name', ctx=Store())],
+                  value=BoolOp(
+                    op=Or(),
+                    values=[
+                      Attribute(
+                        value=Name(id='name', ctx=Load()),
+                        attr='asname',
+                        ctx=Load()),
+                      Attribute(
+                        value=Name(id='name', ctx=Load()),
+                        attr='name',
+                        ctx=Load())])),
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='from_imports',
+                        ctx=Load()),
+                      slice=Name(id='actual_name', ctx=Load()),
+                      ctx=Store())],
+                  value=Tuple(
+                    elts=[
+                      Name(id='module', ctx=Load()),
+                      Attribute(
+                        value=Name(id='name', ctx=Load()),
+                        attr='name',
+                        ctx=Load())],
+                    ctx=Load()))])]),
+        FunctionDef(
+          name='visit_Assign',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            For(
+              target=Name(id='target', ctx=Store()),
+              iter=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='targets',
+                ctx=Load()),
+              body=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='target', ctx=Load()),
+                      Attribute(
+                        value=Name(id='ast', ctx=Load()),
+                        attr='Name',
+                        ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='assigned_names',
+                            ctx=Load()),
+                          attr='add',
+                          ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='target', ctx=Load()),
+                            attr='id',
+                            ctx=Load())]))],
+                  orelse=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Name(id='target', ctx=Load()),
+                          Tuple(
+                            elts=[
+                              Attribute(
+                                value=Name(id='ast', ctx=Load()),
+                                attr='Tuple',
+                                ctx=Load()),
+                              Attribute(
+                                value=Name(id='ast', ctx=Load()),
+                                attr='List',
+                                ctx=Load())],
+                            ctx=Load())]),
+                      body=[
+                        For(
+                          target=Name(id='elt', ctx=Store()),
+                          iter=Attribute(
+                            value=Name(id='target', ctx=Load()),
+                            attr='elts',
+                            ctx=Load()),
+                          body=[
+                            If(
+                              test=Call(
+                                func=Name(id='isinstance', ctx=Load()),
+                                args=[
+                                  Name(id='elt', ctx=Load()),
+                                  Attribute(
+                                    value=Name(id='ast', ctx=Load()),
+                                    attr='Name',
+                                    ctx=Load())]),
+                              body=[
+                                Expr(
+                                  value=Call(
+                                    func=Attribute(
+                                      value=Attribute(
+                                        value=Name(id='self', ctx=Load()),
+                                        attr='assigned_names',
+                                        ctx=Load()),
+                                      attr='add',
+                                      ctx=Load()),
+                                    args=[
+                                      Attribute(
+                                        value=Name(id='elt', ctx=Load()),
+                                        attr='id',
+                                        ctx=Load())]))])])])])]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='visit',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='value',
+                    ctx=Load())]))]),
+        FunctionDef(
+          name='visit_With',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value="Track aliases in 'with' statements (the 'y' in 'with X as y')")),
+            For(
+              target=Name(id='item', ctx=Store()),
+              iter=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='items',
+                ctx=Load()),
+              body=[
+                If(
+                  test=Attribute(
+                    value=Name(id='item', ctx=Load()),
+                    attr='optional_vars',
+                    ctx=Load()),
+                  body=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='item', ctx=Load()),
+                            attr='optional_vars',
+                            ctx=Load()),
+                          Attribute(
+                            value=Name(id='ast', ctx=Load()),
+                            attr='Name',
+                            ctx=Load())]),
+                      body=[
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='assigned_names',
+                                ctx=Load()),
+                              attr='add',
+                              ctx=Load()),
+                            args=[
+                              Attribute(
+                                value=Attribute(
+                                  value=Name(id='item', ctx=Load()),
+                                  attr='optional_vars',
+                                  ctx=Load()),
+                                attr='id',
+                                ctx=Load())]))])])]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))]),
+        FunctionDef(
+          name='visit_ExceptHandler',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value="Track exception aliases (the 'e' in 'except Exception as e')")),
+            If(
+              test=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='name',
+                ctx=Load()),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='assigned_names',
+                        ctx=Load()),
+                      attr='add',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='node', ctx=Load()),
+                        attr='name',
+                        ctx=Load())]))]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))]),
+        FunctionDef(
+          name='visit_AnnAssign',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value='Track annotated assignments.')),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='target',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='ast', ctx=Load()),
+                    attr='Name',
+                    ctx=Load())]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='assigned_names',
+                        ctx=Load()),
+                      attr='add',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Attribute(
+                          value=Name(id='node', ctx=Load()),
+                          attr='target',
+                          ctx=Load()),
+                        attr='id',
+                        ctx=Load())]))]),
+            If(
+              test=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='value',
+                ctx=Load()),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='visit',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='node', ctx=Load()),
+                        attr='value',
+                        ctx=Load())]))])]),
+        FunctionDef(
+          name='visit_For',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='target', ctx=Store())],
+              value=Attribute(
+                value=Name(id='node', ctx=Load()),
+                attr='target',
+                ctx=Load())),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='target', ctx=Load()),
+                  Attribute(
+                    value=Name(id='ast', ctx=Load()),
+                    attr='Name',
+                    ctx=Load())]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Attribute(
+                        value=Name(id='self', ctx=Load()),
+                        attr='assigned_names',
+                        ctx=Load()),
+                      attr='add',
+                      ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='target', ctx=Load()),
+                        attr='id',
+                        ctx=Load())]))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='target', ctx=Load()),
+                      Attribute(
+                        value=Name(id='ast', ctx=Load()),
+                        attr='Tuple',
+                        ctx=Load())]),
+                  body=[
+                    For(
+                      target=Name(id='elt', ctx=Store()),
+                      iter=Attribute(
+                        value=Name(id='target', ctx=Load()),
+                        attr='elts',
+                        ctx=Load()),
+                      body=[
+                        If(
+                          test=Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Name(id='elt', ctx=Load()),
+                              Attribute(
+                                value=Name(id='ast', ctx=Load()),
+                                attr='Name',
+                                ctx=Load())]),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='assigned_names',
+                                    ctx=Load()),
+                                  attr='add',
+                                  ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Name(id='elt', ctx=Load()),
+                                    attr='id',
+                                    ctx=Load())]))])])])]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))]),
+        FunctionDef(
+          name='_handle_comprehension_generators',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='generators')]),
+          body=[
+            Expr(
+              value=Constant(value='Helper method to handle generators in all types of comprehensions')),
+            For(
+              target=Name(id='generator', ctx=Store()),
+              iter=Name(id='generators', ctx=Load()),
+              body=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='generator', ctx=Load()),
+                        attr='target',
+                        ctx=Load()),
+                      Attribute(
+                        value=Name(id='ast', ctx=Load()),
+                        attr='Name',
+                        ctx=Load())]),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='assigned_names',
+                            ctx=Load()),
+                          attr='add',
+                          ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Attribute(
+                              value=Name(id='generator', ctx=Load()),
+                              attr='target',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load())]))],
+                  orelse=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Attribute(
+                            value=Name(id='generator', ctx=Load()),
+                            attr='target',
+                            ctx=Load()),
+                          Attribute(
+                            value=Name(id='ast', ctx=Load()),
+                            attr='Tuple',
+                            ctx=Load())]),
+                      body=[
+                        For(
+                          target=Name(id='elt', ctx=Store()),
+                          iter=Attribute(
+                            value=Attribute(
+                              value=Name(id='generator', ctx=Load()),
+                              attr='target',
+                              ctx=Load()),
+                            attr='elts',
+                            ctx=Load()),
+                          body=[
+                            If(
+                              test=Call(
+                                func=Name(id='isinstance', ctx=Load()),
+                                args=[
+                                  Name(id='elt', ctx=Load()),
+                                  Attribute(
+                                    value=Name(id='ast', ctx=Load()),
+                                    attr='Name',
+                                    ctx=Load())]),
+                              body=[
+                                Expr(
+                                  value=Call(
+                                    func=Attribute(
+                                      value=Attribute(
+                                        value=Name(id='self', ctx=Load()),
+                                        attr='assigned_names',
+                                        ctx=Load()),
+                                      attr='add',
+                                      ctx=Load()),
+                                    args=[
+                                      Attribute(
+                                        value=Name(id='elt', ctx=Load()),
+                                        attr='id',
+                                        ctx=Load())]))])])])])])]),
+        FunctionDef(
+          name='visit_ListComp',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value='Track variables in list comprehensions')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_handle_comprehension_generators',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='generators',
+                    ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))]),
+        FunctionDef(
+          name='visit_DictComp',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value='Track variables in dictionary comprehensions')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_handle_comprehension_generators',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='generators',
+                    ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))]),
+        FunctionDef(
+          name='visit_SetComp',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value='Track variables in set comprehensions')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='_handle_comprehension_generators',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='generators',
+                    ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))]),
+        FunctionDef(
+          name='visit_Attribute',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=BoolOp(
+                  op=And(),
+                  values=[
+                    Call(
+                      func=Name(id='isinstance', ctx=Load()),
+                      args=[
+                        Attribute(
+                          value=Name(id='node', ctx=Load()),
+                          attr='value',
+                          ctx=Load()),
+                        Attribute(
+                          value=Name(id='ast', ctx=Load()),
+                          attr='Name',
+                          ctx=Load())]),
+                    Compare(
+                      left=Attribute(
+                        value=Attribute(
+                          value=Name(id='node', ctx=Load()),
+                          attr='value',
+                          ctx=Load()),
+                        attr='id',
+                        ctx=Load()),
+                      ops=[
+                        Eq()],
+                      comparators=[
+                        Constant(value='self')])])),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='generic_visit',
+                      ctx=Load()),
+                    args=[
+                      Name(id='node', ctx=Load())]))])]),
+        FunctionDef(
+          name='visit_ClassDef',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            Expr(
+              value=Constant(value='Track class definitions')),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='defined_classes',
+                    ctx=Load()),
+                  attr='add',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='name',
+                    ctx=Load())])),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))]),
+        FunctionDef(
+          name='visit_Name',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='ctx',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='ast', ctx=Load()),
+                    attr='Load',
+                    ctx=Load())]),
+              body=[
+                If(
+                  test=UnaryOp(
+                    op=Not(),
+                    operand=BoolOp(
+                      op=Or(),
+                      values=[
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Name(id='_BUILTIN_NAMES', ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Name(id='BASE_BUILTIN_MODULES', ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='arg_names',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            Eq()],
+                          comparators=[
+                            Constant(value='self')]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='class_attributes',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='imports',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='from_imports',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='assigned_names',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='typing_names',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='defined_classes',
+                              ctx=Load())])])),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='errors',
+                            ctx=Load()),
+                          attr='append',
+                          ctx=Load()),
+                        args=[
+                          JoinedStr(
+                            values=[
+                              Constant(value="Name '"),
+                              FormattedValue(
+                                value=Attribute(
+                                  value=Name(id='node', ctx=Load()),
+                                  attr='id',
+                                  ctx=Load()),
+                                conversion=-1),
+                              Constant(value="' is undefined.")])]))])])]),
+        FunctionDef(
+          name='visit_Call',
+          args=arguments(
+            args=[
+              arg(arg='self'),
+              arg(arg='node')]),
+          body=[
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='func',
+                    ctx=Load()),
+                  Attribute(
+                    value=Name(id='ast', ctx=Load()),
+                    attr='Name',
+                    ctx=Load())]),
+              body=[
+                If(
+                  test=UnaryOp(
+                    op=Not(),
+                    operand=BoolOp(
+                      op=Or(),
+                      values=[
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Name(id='_BUILTIN_NAMES', ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Name(id='BASE_BUILTIN_MODULES', ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='arg_names',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            Eq()],
+                          comparators=[
+                            Constant(value='self')]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='class_attributes',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='imports',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='from_imports',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='assigned_names',
+                              ctx=Load())]),
+                        Compare(
+                          left=Attribute(
+                            value=Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='func',
+                              ctx=Load()),
+                            attr='id',
+                            ctx=Load()),
+                          ops=[
+                            In()],
+                          comparators=[
+                            Attribute(
+                              value=Name(id='self', ctx=Load()),
+                              attr='defined_classes',
+                              ctx=Load())])])),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Attribute(
+                            value=Name(id='self', ctx=Load()),
+                            attr='errors',
+                            ctx=Load()),
+                          attr='append',
+                          ctx=Load()),
+                        args=[
+                          JoinedStr(
+                            values=[
+                              Constant(value="Name '"),
+                              FormattedValue(
+                                value=Attribute(
+                                  value=Attribute(
+                                    value=Name(id='node', ctx=Load()),
+                                    attr='func',
+                                    ctx=Load()),
+                                  attr='id',
+                                  ctx=Load()),
+                                conversion=-1),
+                              Constant(value="' is undefined.")])]))])]),
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='self', ctx=Load()),
+                  attr='generic_visit',
+                  ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load())]))])]),
+    FunctionDef(
+      name='validate_tool_attributes',
+      args=arguments(
+        args=[
+          arg(arg='cls'),
+          arg(
+            arg='check_imports',
+            annotation=Name(id='bool', ctx=Load()))],
+        defaults=[
+          Constant(value=True)]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Validates that a Tool class follows the proper patterns:\n    0. Any argument of __init__ should have a default.\n    Args chosen at init are not traceable, so we cannot rebuild the source code for them, thus any important arg should be defined as a class attribute.\n    1. About the class:\n        - Class attributes should only be strings or dicts\n        - Class attributes cannot be complex attributes\n    2. About all class methods:\n        - Imports must be from packages, not local files\n        - All methods must be self-contained\n\n    Raises all errors encountered, if no error returns None.\n    ')),
+        ClassDef(
+          name='ClassLevelChecker',
+          bases=[
+            Attribute(
+              value=Name(id='ast', ctx=Load()),
+              attr='NodeVisitor',
+              ctx=Load())],
+          body=[
+            FunctionDef(
+              name='__init__',
+              args=arguments(
+                args=[
+                  arg(arg='self')]),
+              body=[
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='imported_names',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='set', ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='complex_attributes',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='set', ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='class_attributes',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='set', ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='non_defaults',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='set', ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='non_literal_defaults',
+                      ctx=Store())],
+                  value=Call(
+                    func=Name(id='set', ctx=Load()))),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='in_method',
+                      ctx=Store())],
+                  value=Constant(value=False)),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='invalid_attributes',
+                      ctx=Store())],
+                  value=List(ctx=Load()))]),
+            FunctionDef(
+              name='visit_FunctionDef',
+              args=arguments(
+                args=[
+                  arg(arg='self'),
+                  arg(arg='node')]),
+              body=[
+                If(
+                  test=Compare(
+                    left=Attribute(
+                      value=Name(id='node', ctx=Load()),
+                      attr='name',
+                      ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='__init__')]),
+                  body=[
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='self', ctx=Load()),
+                          attr='_check_init_function_parameters',
+                          ctx=Load()),
+                        args=[
+                          Name(id='node', ctx=Load())]))]),
+                Assign(
+                  targets=[
+                    Name(id='old_context', ctx=Store())],
+                  value=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='in_method',
+                    ctx=Load())),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='in_method',
+                      ctx=Store())],
+                  value=Constant(value=True)),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='generic_visit',
+                      ctx=Load()),
+                    args=[
+                      Name(id='node', ctx=Load())])),
+                Assign(
+                  targets=[
+                    Attribute(
+                      value=Name(id='self', ctx=Load()),
+                      attr='in_method',
+                      ctx=Store())],
+                  value=Name(id='old_context', ctx=Load()))]),
+            FunctionDef(
+              name='visit_Assign',
+              args=arguments(
+                args=[
+                  arg(arg='self'),
+                  arg(arg='node')]),
+              body=[
+                If(
+                  test=Attribute(
+                    value=Name(id='self', ctx=Load()),
+                    attr='in_method',
+                    ctx=Load()),
+                  body=[
+                    Return()]),
+                For(
+                  target=Name(id='target', ctx=Store()),
+                  iter=Attribute(
+                    value=Name(id='node', ctx=Load()),
+                    attr='targets',
+                    ctx=Load()),
+                  body=[
+                    If(
+                      test=Call(
+                        func=Name(id='isinstance', ctx=Load()),
+                        args=[
+                          Name(id='target', ctx=Load()),
+                          Attribute(
+                            value=Name(id='ast', ctx=Load()),
+                            attr='Name',
+                            ctx=Load())]),
+                      body=[
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='class_attributes',
+                                ctx=Load()),
+                              attr='add',
+                              ctx=Load()),
+                            args=[
+                              Attribute(
+                                value=Name(id='target', ctx=Load()),
+                                attr='id',
+                                ctx=Load())]))])]),
+                If(
+                  test=UnaryOp(
+                    op=Not(),
+                    operand=Call(
+                      func=Name(id='all', ctx=Load()),
+                      args=[
+                        GeneratorExp(
+                          elt=Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Name(id='val', ctx=Load()),
+                              Tuple(
+                                elts=[
+                                  Attribute(
+                                    value=Name(id='ast', ctx=Load()),
+                                    attr='Constant',
+                                    ctx=Load()),
+                                  Attribute(
+                                    value=Name(id='ast', ctx=Load()),
+                                    attr='Dict',
+                                    ctx=Load()),
+                                  Attribute(
+                                    value=Name(id='ast', ctx=Load()),
+                                    attr='List',
+                                    ctx=Load()),
+                                  Attribute(
+                                    value=Name(id='ast', ctx=Load()),
+                                    attr='Set',
+                                    ctx=Load())],
+                                ctx=Load())]),
+                          generators=[
+                            comprehension(
+                              target=Name(id='val', ctx=Store()),
+                              iter=Call(
+                                func=Attribute(
+                                  value=Name(id='ast', ctx=Load()),
+                                  attr='walk',
+                                  ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Name(id='node', ctx=Load()),
+                                    attr='value',
+                                    ctx=Load())]),
+                              is_async=0)])])),
+                  body=[
+                    For(
+                      target=Name(id='target', ctx=Store()),
+                      iter=Attribute(
+                        value=Name(id='node', ctx=Load()),
+                        attr='targets',
+                        ctx=Load()),
+                      body=[
+                        If(
+                          test=Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Name(id='target', ctx=Load()),
+                              Attribute(
+                                value=Name(id='ast', ctx=Load()),
+                                attr='Name',
+                                ctx=Load())]),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='complex_attributes',
+                                    ctx=Load()),
+                                  attr='add',
+                                  ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Name(id='target', ctx=Load()),
+                                    attr='id',
+                                    ctx=Load())]))])])]),
+                If(
+                  test=Compare(
+                    left=Call(
+                      func=Name(id='getattr', ctx=Load()),
+                      args=[
+                        Subscript(
+                          value=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='targets',
+                            ctx=Load()),
+                          slice=Constant(value=0),
+                          ctx=Load()),
+                        Constant(value='id'),
+                        Constant(value='')]),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='name')]),
+                  body=[
+                    If(
+                      test=UnaryOp(
+                        op=Not(),
+                        operand=Call(
+                          func=Name(id='isinstance', ctx=Load()),
+                          args=[
+                            Attribute(
+                              value=Name(id='node', ctx=Load()),
+                              attr='value',
+                              ctx=Load()),
+                            Attribute(
+                              value=Name(id='ast', ctx=Load()),
+                              attr='Constant',
+                              ctx=Load())])),
+                      body=[
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Attribute(
+                                value=Name(id='self', ctx=Load()),
+                                attr='invalid_attributes',
+                                ctx=Load()),
+                              attr='append',
+                              ctx=Load()),
+                            args=[
+                              JoinedStr(
+                                values=[
+                                  Constant(value="Class attribute 'name' must be a constant, found '"),
+                                  FormattedValue(
+                                    value=Attribute(
+                                      value=Name(id='node', ctx=Load()),
+                                      attr='value',
+                                      ctx=Load()),
+                                    conversion=-1),
+                                  Constant(value="'")])]))],
+                      orelse=[
+                        If(
+                          test=UnaryOp(
+                            op=Not(),
+                            operand=Call(
+                              func=Name(id='isinstance', ctx=Load()),
+                              args=[
+                                Attribute(
+                                  value=Attribute(
+                                    value=Name(id='node', ctx=Load()),
+                                    attr='value',
+                                    ctx=Load()),
+                                  attr='value',
+                                  ctx=Load()),
+                                Name(id='str', ctx=Load())])),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='invalid_attributes',
+                                    ctx=Load()),
+                                  attr='append',
+                                  ctx=Load()),
+                                args=[
+                                  JoinedStr(
+                                    values=[
+                                      Constant(value="Class attribute 'name' must be a string, found '"),
+                                      FormattedValue(
+                                        value=Attribute(
+                                          value=Attribute(
+                                            value=Name(id='node', ctx=Load()),
+                                            attr='value',
+                                            ctx=Load()),
+                                          attr='value',
+                                          ctx=Load()),
+                                        conversion=-1),
+                                      Constant(value="'")])]))],
+                          orelse=[
+                            If(
+                              test=UnaryOp(
+                                op=Not(),
+                                operand=Call(
+                                  func=Name(id='is_valid_name', ctx=Load()),
+                                  args=[
+                                    Attribute(
+                                      value=Attribute(
+                                        value=Name(id='node', ctx=Load()),
+                                        attr='value',
+                                        ctx=Load()),
+                                      attr='value',
+                                      ctx=Load())])),
+                              body=[
+                                Expr(
+                                  value=Call(
+                                    func=Attribute(
+                                      value=Attribute(
+                                        value=Name(id='self', ctx=Load()),
+                                        attr='invalid_attributes',
+                                        ctx=Load()),
+                                      attr='append',
+                                      ctx=Load()),
+                                    args=[
+                                      JoinedStr(
+                                        values=[
+                                          Constant(value="Class attribute 'name' must be a valid Python identifier and not a reserved keyword, found '"),
+                                          FormattedValue(
+                                            value=Attribute(
+                                              value=Attribute(
+                                                value=Name(id='node', ctx=Load()),
+                                                attr='value',
+                                                ctx=Load()),
+                                              attr='value',
+                                              ctx=Load()),
+                                            conversion=-1),
+                                          Constant(value="'")])]))])])])])]),
+            FunctionDef(
+              name='_check_init_function_parameters',
+              args=arguments(
+                args=[
+                  arg(arg='self'),
+                  arg(arg='node')]),
+              body=[
+                For(
+                  target=Tuple(
+                    elts=[
+                      Name(id='arg', ctx=Store()),
+                      Name(id='default', ctx=Store())],
+                    ctx=Store()),
+                  iter=Call(
+                    func=Name(id='reversed', ctx=Load()),
+                    args=[
+                      Call(
+                        func=Name(id='list', ctx=Load()),
+                        args=[
+                          Call(
+                            func=Name(id='zip_longest', ctx=Load()),
+                            args=[
+                              Call(
+                                func=Name(id='reversed', ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Attribute(
+                                      value=Name(id='node', ctx=Load()),
+                                      attr='args',
+                                      ctx=Load()),
+                                    attr='args',
+                                    ctx=Load())]),
+                              Call(
+                                func=Name(id='reversed', ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Attribute(
+                                      value=Name(id='node', ctx=Load()),
+                                      attr='args',
+                                      ctx=Load()),
+                                    attr='defaults',
+                                    ctx=Load())])])])]),
+                  body=[
+                    If(
+                      test=Compare(
+                        left=Name(id='default', ctx=Load()),
+                        ops=[
+                          Is()],
+                        comparators=[
+                          Constant(value=None)]),
+                      body=[
+                        If(
+                          test=Compare(
+                            left=Attribute(
+                              value=Name(id='arg', ctx=Load()),
+                              attr='arg',
+                              ctx=Load()),
+                            ops=[
+                              NotEq()],
+                            comparators=[
+                              Constant(value='self')]),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='non_defaults',
+                                    ctx=Load()),
+                                  attr='add',
+                                  ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Name(id='arg', ctx=Load()),
+                                    attr='arg',
+                                    ctx=Load())]))])],
+                      orelse=[
+                        If(
+                          test=UnaryOp(
+                            op=Not(),
+                            operand=Call(
+                              func=Name(id='isinstance', ctx=Load()),
+                              args=[
+                                Name(id='default', ctx=Load()),
+                                Tuple(
+                                  elts=[
+                                    Attribute(
+                                      value=Name(id='ast', ctx=Load()),
+                                      attr='Constant',
+                                      ctx=Load()),
+                                    Attribute(
+                                      value=Name(id='ast', ctx=Load()),
+                                      attr='Dict',
+                                      ctx=Load()),
+                                    Attribute(
+                                      value=Name(id='ast', ctx=Load()),
+                                      attr='List',
+                                      ctx=Load()),
+                                    Attribute(
+                                      value=Name(id='ast', ctx=Load()),
+                                      attr='Set',
+                                      ctx=Load())],
+                                  ctx=Load())])),
+                          body=[
+                            Expr(
+                              value=Call(
+                                func=Attribute(
+                                  value=Attribute(
+                                    value=Name(id='self', ctx=Load()),
+                                    attr='non_literal_defaults',
+                                    ctx=Load()),
+                                  attr='add',
+                                  ctx=Load()),
+                                args=[
+                                  Attribute(
+                                    value=Name(id='arg', ctx=Load()),
+                                    attr='arg',
+                                    ctx=Load())]))])])])])]),
+        Assign(
+          targets=[
+            Name(id='class_level_checker', ctx=Store())],
+          value=Call(
+            func=Name(id='ClassLevelChecker', ctx=Load()))),
+        Assign(
+          targets=[
+            Name(id='source', ctx=Store())],
+          value=Call(
+            func=Name(id='get_source', ctx=Load()),
+            args=[
+              Name(id='cls', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='tree', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='ast', ctx=Load()),
+              attr='parse',
+              ctx=Load()),
+            args=[
+              Name(id='source', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='class_node', ctx=Store())],
+          value=Subscript(
+            value=Attribute(
+              value=Name(id='tree', ctx=Load()),
+              attr='body',
+              ctx=Load()),
+            slice=Constant(value=0),
+            ctx=Load())),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Call(
+              func=Name(id='isinstance', ctx=Load()),
+              args=[
+                Name(id='class_node', ctx=Load()),
+                Attribute(
+                  value=Name(id='ast', ctx=Load()),
+                  attr='ClassDef',
+                  ctx=Load())])),
+          body=[
+            Raise(
+              exc=Call(
+                func=Name(id='ValueError', ctx=Load()),
+                args=[
+                  Constant(value='Source code must define a class')]))]),
+        Expr(
+          value=Call(
+            func=Attribute(
+              value=Name(id='class_level_checker', ctx=Load()),
+              attr='visit',
+              ctx=Load()),
+            args=[
+              Name(id='class_node', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='errors', ctx=Store())],
+          value=List(ctx=Load())),
+        If(
+          test=Attribute(
+            value=Name(id='class_level_checker', ctx=Load()),
+            attr='invalid_attributes',
+            ctx=Load()),
+          body=[
+            AugAssign(
+              target=Name(id='errors', ctx=Store()),
+              op=Add(),
+              value=Attribute(
+                value=Name(id='class_level_checker', ctx=Load()),
+                attr='invalid_attributes',
+                ctx=Load()))]),
+        If(
+          test=Attribute(
+            value=Name(id='class_level_checker', ctx=Load()),
+            attr='complex_attributes',
+            ctx=Load()),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='errors', ctx=Load()),
+                  attr='append',
+                  ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      Constant(value='Complex attributes should be defined in __init__, not as class attributes: '),
+                      FormattedValue(
+                        value=Call(
+                          func=Attribute(
+                            value=Constant(value=', '),
+                            attr='join',
+                            ctx=Load()),
+                          args=[
+                            Attribute(
+                              value=Name(id='class_level_checker', ctx=Load()),
+                              attr='complex_attributes',
+                              ctx=Load())]),
+                        conversion=-1)])]))]),
+        If(
+          test=Attribute(
+            value=Name(id='class_level_checker', ctx=Load()),
+            attr='non_defaults',
+            ctx=Load()),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='errors', ctx=Load()),
+                  attr='append',
+                  ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      Constant(value='Parameters in __init__ must have default values, found required parameters: '),
+                      FormattedValue(
+                        value=Call(
+                          func=Attribute(
+                            value=Constant(value=', '),
+                            attr='join',
+                            ctx=Load()),
+                          args=[
+                            Attribute(
+                              value=Name(id='class_level_checker', ctx=Load()),
+                              attr='non_defaults',
+                              ctx=Load())]),
+                        conversion=-1)])]))]),
+        If(
+          test=Attribute(
+            value=Name(id='class_level_checker', ctx=Load()),
+            attr='non_literal_defaults',
+            ctx=Load()),
+          body=[
+            Expr(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='errors', ctx=Load()),
+                  attr='append',
+                  ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      Constant(value='Parameters in __init__ must have literal default values, found non-literal defaults: '),
+                      FormattedValue(
+                        value=Call(
+                          func=Attribute(
+                            value=Constant(value=', '),
+                            attr='join',
+                            ctx=Load()),
+                          args=[
+                            Attribute(
+                              value=Name(id='class_level_checker', ctx=Load()),
+                              attr='non_literal_defaults',
+                              ctx=Load())]),
+                        conversion=-1)])]))]),
+        For(
+          target=Name(id='node', ctx=Store()),
+          iter=Attribute(
+            value=Name(id='class_node', ctx=Load()),
+            attr='body',
+            ctx=Load()),
+          body=[
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='node', ctx=Load()),
+                  Attribute(
+                    value=Name(id='ast', ctx=Load()),
+                    attr='FunctionDef',
+                    ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='method_checker', ctx=Store())],
+                  value=Call(
+                    func=Name(id='MethodChecker', ctx=Load()),
+                    args=[
+                      Attribute(
+                        value=Name(id='class_level_checker', ctx=Load()),
+                        attr='class_attributes',
+                        ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='check_imports',
+                        value=Name(id='check_imports', ctx=Load()))])),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='method_checker', ctx=Load()),
+                      attr='visit',
+                      ctx=Load()),
+                    args=[
+                      Name(id='node', ctx=Load())])),
+                AugAssign(
+                  target=Name(id='errors', ctx=Store()),
+                  op=Add(),
+                  value=ListComp(
+                    elt=JoinedStr(
+                      values=[
+                        Constant(value='- '),
+                        FormattedValue(
+                          value=Attribute(
+                            value=Name(id='node', ctx=Load()),
+                            attr='name',
+                            ctx=Load()),
+                          conversion=-1),
+                        Constant(value=': '),
+                        FormattedValue(
+                          value=Name(id='error', ctx=Load()),
+                          conversion=-1)]),
+                    generators=[
+                      comprehension(
+                        target=Name(id='error', ctx=Store()),
+                        iter=Attribute(
+                          value=Name(id='method_checker', ctx=Load()),
+                          attr='errors',
+                          ctx=Load()),
+                        is_async=0)]))])]),
+        If(
+          test=Name(id='errors', ctx=Load()),
+          body=[
+            Raise(
+              exc=Call(
+                func=Name(id='ValueError', ctx=Load()),
+                args=[
+                  BinOp(
+                    left=JoinedStr(
+                      values=[
+                        Constant(value='Tool validation failed for '),
+                        FormattedValue(
+                          value=Attribute(
+                            value=Name(id='cls', ctx=Load()),
+                            attr='__name__',
+                            ctx=Load()),
+                          conversion=-1),
+                        Constant(value=':\n')]),
+                    op=Add(),
+                    right=Call(
+                      func=Attribute(
+                        value=Constant(value='\n'),
+                        attr='join',
+                        ctx=Load()),
+                      args=[
+                        Name(id='errors', ctx=Load())]))]))]),
+        Return()],
+      returns=Constant(value=None))])

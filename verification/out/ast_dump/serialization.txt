@@ -1,0 +1,2139 @@
+Module(
+  body=[
+    Expr(
+      value=Constant(value='\nSafe serialization module for remote executor communication.\n\nProvides JSON-based serialization with optional pickle fallback for types\nthat cannot be safely serialized.\n\n**Security Note:** Pickle deserialization can execute arbitrary code. This module\ndefaults to safe JSON-only serialization. Only enable pickle fallback\n(allow_insecure_serializer=True) if you fully trust the execution environment.\n')),
+    Import(
+      names=[
+        alias(name='base64')]),
+    Import(
+      names=[
+        alias(name='json')]),
+    Import(
+      names=[
+        alias(name='pickle')]),
+    ImportFrom(
+      module='io',
+      names=[
+        alias(name='BytesIO')],
+      level=0),
+    ImportFrom(
+      module='typing',
+      names=[
+        alias(name='Any')],
+      level=0),
+    Assign(
+      targets=[
+        Name(id='__all__', ctx=Store())],
+      value=List(
+        elts=[
+          Constant(value='SerializationError'),
+          Constant(value='SafeSerializer')],
+        ctx=Load())),
+    ClassDef(
+      name='SerializationError',
+      bases=[
+        Name(id='Exception', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='Raised when a type cannot be safely serialized.')),
+        Pass()]),
+    ClassDef(
+      name='SafeSerializer',
+      body=[
+        Expr(
+          value=Constant(value='JSON-based serializer with type markers for safe serialization.\n\n    Supports:\n    - Basic: str, int, float, bool, None, list, dict\n    - Extended: tuple, set, frozenset, bytes, complex, datetime/date/time/timedelta\n    - Optional: numpy.ndarray, PIL.Image, dataclasses, Decimal, Path\n\n    The serializer uses a prefix system to distinguish between formats:\n    - "safe:" prefix for JSON-serialized data\n    - "pickle:" prefix for pickle-serialized data (when allowed)\n    ')),
+        Assign(
+          targets=[
+            Name(id='SAFE_PREFIX', ctx=Store())],
+          value=Constant(value='safe:')),
+        AnnAssign(
+          target=Name(id='_optional_types_cache', ctx=Store()),
+          annotation=Name(id='dict', ctx=Load()),
+          value=Dict(),
+          simple=1),
+        FunctionDef(
+          name='_get_optional_type',
+          args=arguments(
+            args=[
+              arg(arg='cls'),
+              arg(
+                arg='module',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='attr',
+                annotation=Name(id='str', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='Get optional type class with caching to avoid repeated imports.')),
+            Assign(
+              targets=[
+                Name(id='key', ctx=Store())],
+              value=JoinedStr(
+                values=[
+                  FormattedValue(
+                    value=Name(id='module', ctx=Load()),
+                    conversion=-1),
+                  Constant(value='.'),
+                  FormattedValue(
+                    value=Name(id='attr', ctx=Load()),
+                    conversion=-1)])),
+            If(
+              test=Compare(
+                left=Name(id='key', ctx=Load()),
+                ops=[
+                  NotIn()],
+                comparators=[
+                  Attribute(
+                    value=Name(id='cls', ctx=Load()),
+                    attr='_optional_types_cache',
+                    ctx=Load())]),
+              body=[
+                Try(
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='mod', ctx=Store())],
+                      value=Call(
+                        func=Name(id='__import__', ctx=Load()),
+                        args=[
+                          Name(id='module', ctx=Load())],
+                        keywords=[
+                          keyword(
+                            arg='fromlist',
+                            value=List(
+                              elts=[
+                                Name(id='attr', ctx=Load())],
+                              ctx=Load()))])),
+                    Assign(
+                      targets=[
+                        Subscript(
+                          value=Attribute(
+                            value=Name(id='cls', ctx=Load()),
+                            attr='_optional_types_cache',
+                            ctx=Load()),
+                          slice=Name(id='key', ctx=Load()),
+                          ctx=Store())],
+                      value=Call(
+                        func=Name(id='getattr', ctx=Load()),
+                        args=[
+                          Name(id='mod', ctx=Load()),
+                          Name(id='attr', ctx=Load())]))],
+                  handlers=[
+                    ExceptHandler(
+                      type=Tuple(
+                        elts=[
+                          Name(id='ImportError', ctx=Load()),
+                          Name(id='AttributeError', ctx=Load())],
+                        ctx=Load()),
+                      body=[
+                        Assign(
+                          targets=[
+                            Subscript(
+                              value=Attribute(
+                                value=Name(id='cls', ctx=Load()),
+                                attr='_optional_types_cache',
+                                ctx=Load()),
+                              slice=Name(id='key', ctx=Load()),
+                              ctx=Store())],
+                          value=Constant(value=None))])])]),
+            Return(
+              value=Subscript(
+                value=Attribute(
+                  value=Name(id='cls', ctx=Load()),
+                  attr='_optional_types_cache',
+                  ctx=Load()),
+                slice=Name(id='key', ctx=Load()),
+                ctx=Load()))],
+          decorator_list=[
+            Name(id='classmethod', ctx=Load())]),
+        FunctionDef(
+          name='to_json_safe',
+          args=arguments(
+            args=[
+              arg(
+                arg='obj',
+                annotation=Name(id='Any', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='Convert Python objects to JSON-serializable format with type markers.\n\n        Args:\n            obj: Object to convert.\n\n        Returns:\n            JSON-serializable representation.\n\n        Raises:\n            SerializationError: If the object cannot be safely serialized.\n        ')),
+            Assign(
+              targets=[
+                Name(id='obj_type', ctx=Store())],
+              value=Call(
+                func=Name(id='type', ctx=Load()),
+                args=[
+                  Name(id='obj', ctx=Load())])),
+            If(
+              test=BoolOp(
+                op=Or(),
+                values=[
+                  Compare(
+                    left=Name(id='obj_type', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Name(id='str', ctx=Load())]),
+                  Compare(
+                    left=Name(id='obj_type', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Name(id='int', ctx=Load())]),
+                  Compare(
+                    left=Name(id='obj_type', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Name(id='float', ctx=Load())]),
+                  Compare(
+                    left=Name(id='obj_type', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Name(id='bool', ctx=Load())]),
+                  Compare(
+                    left=Name(id='obj', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Constant(value=None)])]),
+              body=[
+                Return(
+                  value=Name(id='obj', ctx=Load()))]),
+            If(
+              test=Compare(
+                left=Name(id='obj_type', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Name(id='list', ctx=Load())]),
+              body=[
+                Return(
+                  value=ListComp(
+                    elt=Call(
+                      func=Attribute(
+                        value=Name(id='SafeSerializer', ctx=Load()),
+                        attr='to_json_safe',
+                        ctx=Load()),
+                      args=[
+                        Name(id='item', ctx=Load())]),
+                    generators=[
+                      comprehension(
+                        target=Name(id='item', ctx=Store()),
+                        iter=Name(id='obj', ctx=Load()),
+                        is_async=0)]))]),
+            If(
+              test=Compare(
+                left=Name(id='obj_type', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Name(id='tuple', ctx=Load())]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='tuple'),
+                      ListComp(
+                        elt=Call(
+                          func=Attribute(
+                            value=Name(id='SafeSerializer', ctx=Load()),
+                            attr='to_json_safe',
+                            ctx=Load()),
+                          args=[
+                            Name(id='item', ctx=Load())]),
+                        generators=[
+                          comprehension(
+                            target=Name(id='item', ctx=Store()),
+                            iter=Name(id='obj', ctx=Load()),
+                            is_async=0)])]))]),
+            If(
+              test=Compare(
+                left=Name(id='obj_type', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Name(id='dict', ctx=Load())]),
+              body=[
+                If(
+                  test=Call(
+                    func=Name(id='all', ctx=Load()),
+                    args=[
+                      GeneratorExp(
+                        elt=Compare(
+                          left=Call(
+                            func=Name(id='type', ctx=Load()),
+                            args=[
+                              Name(id='k', ctx=Load())]),
+                          ops=[
+                            Is()],
+                          comparators=[
+                            Name(id='str', ctx=Load())]),
+                        generators=[
+                          comprehension(
+                            target=Name(id='k', ctx=Store()),
+                            iter=Name(id='obj', ctx=Load()),
+                            is_async=0)])]),
+                  body=[
+                    Return(
+                      value=DictComp(
+                        key=Name(id='k', ctx=Load()),
+                        value=Call(
+                          func=Attribute(
+                            value=Name(id='SafeSerializer', ctx=Load()),
+                            attr='to_json_safe',
+                            ctx=Load()),
+                          args=[
+                            Name(id='v', ctx=Load())]),
+                        generators=[
+                          comprehension(
+                            target=Tuple(
+                              elts=[
+                                Name(id='k', ctx=Store()),
+                                Name(id='v', ctx=Store())],
+                              ctx=Store()),
+                            iter=Call(
+                              func=Attribute(
+                                value=Name(id='obj', ctx=Load()),
+                                attr='items',
+                                ctx=Load())),
+                            is_async=0)]))]),
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='dict_with_complex_keys'),
+                      ListComp(
+                        elt=List(
+                          elts=[
+                            Call(
+                              func=Attribute(
+                                value=Name(id='SafeSerializer', ctx=Load()),
+                                attr='to_json_safe',
+                                ctx=Load()),
+                              args=[
+                                Name(id='k', ctx=Load())]),
+                            Call(
+                              func=Attribute(
+                                value=Name(id='SafeSerializer', ctx=Load()),
+                                attr='to_json_safe',
+                                ctx=Load()),
+                              args=[
+                                Name(id='v', ctx=Load())])],
+                          ctx=Load()),
+                        generators=[
+                          comprehension(
+                            target=Tuple(
+                              elts=[
+                                Name(id='k', ctx=Store()),
+                                Name(id='v', ctx=Store())],
+                              ctx=Store()),
+                            iter=Call(
+                              func=Attribute(
+                                value=Name(id='obj', ctx=Load()),
+                                attr='items',
+                                ctx=Load())),
+                            is_async=0)])]))]),
+            If(
+              test=Compare(
+                left=Name(id='obj_type', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Name(id='set', ctx=Load())]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='set'),
+                      ListComp(
+                        elt=Call(
+                          func=Attribute(
+                            value=Name(id='SafeSerializer', ctx=Load()),
+                            attr='to_json_safe',
+                            ctx=Load()),
+                          args=[
+                            Name(id='item', ctx=Load())]),
+                        generators=[
+                          comprehension(
+                            target=Name(id='item', ctx=Store()),
+                            iter=Name(id='obj', ctx=Load()),
+                            is_async=0)])]))]),
+            If(
+              test=Compare(
+                left=Name(id='obj_type', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Name(id='frozenset', ctx=Load())]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='frozenset'),
+                      ListComp(
+                        elt=Call(
+                          func=Attribute(
+                            value=Name(id='SafeSerializer', ctx=Load()),
+                            attr='to_json_safe',
+                            ctx=Load()),
+                          args=[
+                            Name(id='item', ctx=Load())]),
+                        generators=[
+                          comprehension(
+                            target=Name(id='item', ctx=Store()),
+                            iter=Name(id='obj', ctx=Load()),
+                            is_async=0)])]))]),
+            If(
+              test=Compare(
+                left=Name(id='obj_type', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Name(id='bytes', ctx=Load())]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='bytes'),
+                      Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='base64', ctx=Load()),
+                              attr='b64encode',
+                              ctx=Load()),
+                            args=[
+                              Name(id='obj', ctx=Load())]),
+                          attr='decode',
+                          ctx=Load()))]))]),
+            If(
+              test=Compare(
+                left=Name(id='obj_type', ctx=Load()),
+                ops=[
+                  Is()],
+                comparators=[
+                  Name(id='complex', ctx=Load())]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='real'),
+                      Constant(value='imag')],
+                    values=[
+                      Constant(value='complex'),
+                      Attribute(
+                        value=Name(id='obj', ctx=Load()),
+                        attr='real',
+                        ctx=Load()),
+                      Attribute(
+                        value=Name(id='obj', ctx=Load()),
+                        attr='imag',
+                        ctx=Load())]))]),
+            Assign(
+              targets=[
+                Name(id='type_module', ctx=Store())],
+              value=Call(
+                func=Name(id='getattr', ctx=Load()),
+                args=[
+                  Name(id='obj_type', ctx=Load()),
+                  Constant(value='__module__'),
+                  Constant(value='')])),
+            Assign(
+              targets=[
+                Name(id='type_name', ctx=Store())],
+              value=Attribute(
+                value=Name(id='obj_type', ctx=Load()),
+                attr='__name__',
+                ctx=Load())),
+            If(
+              test=Compare(
+                left=Name(id='type_module', ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Constant(value='datetime')]),
+              body=[
+                If(
+                  test=Compare(
+                    left=Name(id='type_name', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='datetime')]),
+                  body=[
+                    Return(
+                      value=Dict(
+                        keys=[
+                          Constant(value='__type__'),
+                          Constant(value='data')],
+                        values=[
+                          Constant(value='datetime'),
+                          Call(
+                            func=Attribute(
+                              value=Name(id='obj', ctx=Load()),
+                              attr='isoformat',
+                              ctx=Load()))]))]),
+                If(
+                  test=Compare(
+                    left=Name(id='type_name', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='date')]),
+                  body=[
+                    Return(
+                      value=Dict(
+                        keys=[
+                          Constant(value='__type__'),
+                          Constant(value='data')],
+                        values=[
+                          Constant(value='date'),
+                          Call(
+                            func=Attribute(
+                              value=Name(id='obj', ctx=Load()),
+                              attr='isoformat',
+                              ctx=Load()))]))]),
+                If(
+                  test=Compare(
+                    left=Name(id='type_name', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='time')]),
+                  body=[
+                    Return(
+                      value=Dict(
+                        keys=[
+                          Constant(value='__type__'),
+                          Constant(value='data')],
+                        values=[
+                          Constant(value='time'),
+                          Call(
+                            func=Attribute(
+                              value=Name(id='obj', ctx=Load()),
+                              attr='isoformat',
+                              ctx=Load()))]))]),
+                If(
+                  test=Compare(
+                    left=Name(id='type_name', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='timedelta')]),
+                  body=[
+                    Return(
+                      value=Dict(
+                        keys=[
+                          Constant(value='__type__'),
+                          Constant(value='total_seconds')],
+                        values=[
+                          Constant(value='timedelta'),
+                          Call(
+                            func=Attribute(
+                              value=Name(id='obj', ctx=Load()),
+                              attr='total_seconds',
+                              ctx=Load()))]))])]),
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Compare(
+                    left=Name(id='type_module', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='decimal')]),
+                  Compare(
+                    left=Name(id='type_name', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='Decimal')])]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='Decimal'),
+                      Call(
+                        func=Name(id='str', ctx=Load()),
+                        args=[
+                          Name(id='obj', ctx=Load())])]))]),
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Call(
+                    func=Attribute(
+                      value=Name(id='type_module', ctx=Load()),
+                      attr='startswith',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='pathlib')]),
+                  Compare(
+                    left=Constant(value='Path'),
+                    ops=[
+                      In()],
+                    comparators=[
+                      Name(id='type_name', ctx=Load())])]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='Path'),
+                      Call(
+                        func=Name(id='str', ctx=Load()),
+                        args=[
+                          Name(id='obj', ctx=Load())])]))]),
+            Assign(
+              targets=[
+                Name(id='pil_image_cls', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='SafeSerializer', ctx=Load()),
+                  attr='_get_optional_type',
+                  ctx=Load()),
+                args=[
+                  Constant(value='PIL.Image'),
+                  Constant(value='Image')])),
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Compare(
+                    left=Name(id='pil_image_cls', ctx=Load()),
+                    ops=[
+                      IsNot()],
+                    comparators=[
+                      Constant(value=None)]),
+                  Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='obj', ctx=Load()),
+                      Name(id='pil_image_cls', ctx=Load())])]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='buffer', ctx=Store())],
+                  value=Call(
+                    func=Name(id='BytesIO', ctx=Load()))),
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='obj', ctx=Load()),
+                      attr='save',
+                      ctx=Load()),
+                    args=[
+                      Name(id='buffer', ctx=Load())],
+                    keywords=[
+                      keyword(
+                        arg='format',
+                        value=Constant(value='PNG'))])),
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='PIL.Image'),
+                      Call(
+                        func=Attribute(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='base64', ctx=Load()),
+                              attr='b64encode',
+                              ctx=Load()),
+                            args=[
+                              Call(
+                                func=Attribute(
+                                  value=Name(id='buffer', ctx=Load()),
+                                  attr='getvalue',
+                                  ctx=Load()))]),
+                          attr='decode',
+                          ctx=Load()))]))]),
+            If(
+              test=BoolOp(
+                op=Or(),
+                values=[
+                  Compare(
+                    left=Name(id='type_module', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Constant(value='numpy')]),
+                  Call(
+                    func=Attribute(
+                      value=Name(id='type_module', ctx=Load()),
+                      attr='startswith',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='numpy.')])]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='np_ndarray', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='SafeSerializer', ctx=Load()),
+                      attr='_get_optional_type',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='numpy'),
+                      Constant(value='ndarray')])),
+                If(
+                  test=BoolOp(
+                    op=And(),
+                    values=[
+                      Compare(
+                        left=Name(id='np_ndarray', ctx=Load()),
+                        ops=[
+                          IsNot()],
+                        comparators=[
+                          Constant(value=None)]),
+                      Compare(
+                        left=Name(id='obj_type', ctx=Load()),
+                        ops=[
+                          Is()],
+                        comparators=[
+                          Name(id='np_ndarray', ctx=Load())])]),
+                  body=[
+                    Return(
+                      value=Dict(
+                        keys=[
+                          Constant(value='__type__'),
+                          Constant(value='data'),
+                          Constant(value='dtype')],
+                        values=[
+                          Constant(value='ndarray'),
+                          Call(
+                            func=Attribute(
+                              value=Name(id='obj', ctx=Load()),
+                              attr='tolist',
+                              ctx=Load())),
+                          Call(
+                            func=Name(id='str', ctx=Load()),
+                            args=[
+                              Attribute(
+                                value=Name(id='obj', ctx=Load()),
+                                attr='dtype',
+                                ctx=Load())])]))]),
+                Assign(
+                  targets=[
+                    Name(id='np_integer', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='SafeSerializer', ctx=Load()),
+                      attr='_get_optional_type',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='numpy'),
+                      Constant(value='integer')])),
+                Assign(
+                  targets=[
+                    Name(id='np_floating', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='SafeSerializer', ctx=Load()),
+                      attr='_get_optional_type',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='numpy'),
+                      Constant(value='floating')])),
+                If(
+                  test=BoolOp(
+                    op=Or(),
+                    values=[
+                      BoolOp(
+                        op=And(),
+                        values=[
+                          Name(id='np_integer', ctx=Load()),
+                          Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Name(id='obj', ctx=Load()),
+                              Name(id='np_integer', ctx=Load())])]),
+                      BoolOp(
+                        op=And(),
+                        values=[
+                          Name(id='np_floating', ctx=Load()),
+                          Call(
+                            func=Name(id='isinstance', ctx=Load()),
+                            args=[
+                              Name(id='obj', ctx=Load()),
+                              Name(id='np_floating', ctx=Load())])])]),
+                  body=[
+                    Return(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='obj', ctx=Load()),
+                          attr='item',
+                          ctx=Load())))])]),
+            Import(
+              names=[
+                alias(name='dataclasses')]),
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Call(
+                    func=Attribute(
+                      value=Name(id='dataclasses', ctx=Load()),
+                      attr='is_dataclass',
+                      ctx=Load()),
+                    args=[
+                      Name(id='obj', ctx=Load())]),
+                  UnaryOp(
+                    op=Not(),
+                    operand=Call(
+                      func=Name(id='isinstance', ctx=Load()),
+                      args=[
+                        Name(id='obj', ctx=Load()),
+                        Name(id='type', ctx=Load())]))]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='__type__'),
+                      Constant(value='class_name'),
+                      Constant(value='module'),
+                      Constant(value='data')],
+                    values=[
+                      Constant(value='dataclass'),
+                      Name(id='type_name', ctx=Load()),
+                      Name(id='type_module', ctx=Load()),
+                      DictComp(
+                        key=Attribute(
+                          value=Name(id='f', ctx=Load()),
+                          attr='name',
+                          ctx=Load()),
+                        value=Call(
+                          func=Attribute(
+                            value=Name(id='SafeSerializer', ctx=Load()),
+                            attr='to_json_safe',
+                            ctx=Load()),
+                          args=[
+                            Call(
+                              func=Name(id='getattr', ctx=Load()),
+                              args=[
+                                Name(id='obj', ctx=Load()),
+                                Attribute(
+                                  value=Name(id='f', ctx=Load()),
+                                  attr='name',
+                                  ctx=Load())])]),
+                        generators=[
+                          comprehension(
+                            target=Name(id='f', ctx=Store()),
+                            iter=Call(
+                              func=Attribute(
+                                value=Name(id='dataclasses', ctx=Load()),
+                                attr='fields',
+                                ctx=Load()),
+                              args=[
+                                Name(id='obj', ctx=Load())]),
+                            is_async=0)])]))]),
+            Raise(
+              exc=Call(
+                func=Name(id='SerializationError', ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      Constant(value='Cannot safely serialize object of type '),
+                      FormattedValue(
+                        value=Name(id='type_name', ctx=Load()),
+                        conversion=-1)])]))],
+          decorator_list=[
+            Name(id='staticmethod', ctx=Load())],
+          returns=Name(id='Any', ctx=Load())),
+        FunctionDef(
+          name='from_json_safe',
+          args=arguments(
+            args=[
+              arg(
+                arg='obj',
+                annotation=Name(id='Any', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Convert JSON-safe format back to Python objects.\n\n        Args:\n            obj: JSON-safe representation\n\n        Returns:\n            Original Python object\n        ')),
+            If(
+              test=Call(
+                func=Name(id='isinstance', ctx=Load()),
+                args=[
+                  Name(id='obj', ctx=Load()),
+                  Name(id='dict', ctx=Load())]),
+              body=[
+                If(
+                  test=Compare(
+                    left=Constant(value='__type__'),
+                    ops=[
+                      In()],
+                    comparators=[
+                      Name(id='obj', ctx=Load())]),
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='obj_type', ctx=Store())],
+                      value=Subscript(
+                        value=Name(id='obj', ctx=Load()),
+                        slice=Constant(value='__type__'),
+                        ctx=Load())),
+                    If(
+                      test=Compare(
+                        left=Name(id='obj_type', ctx=Load()),
+                        ops=[
+                          Eq()],
+                        comparators=[
+                          Constant(value='bytes')]),
+                      body=[
+                        Return(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='base64', ctx=Load()),
+                              attr='b64decode',
+                              ctx=Load()),
+                            args=[
+                              Subscript(
+                                value=Name(id='obj', ctx=Load()),
+                                slice=Constant(value='data'),
+                                ctx=Load())]))],
+                      orelse=[
+                        If(
+                          test=Compare(
+                            left=Name(id='obj_type', ctx=Load()),
+                            ops=[
+                              Eq()],
+                            comparators=[
+                              Constant(value='PIL.Image')]),
+                          body=[
+                            Try(
+                              body=[
+                                Import(
+                                  names=[
+                                    alias(name='PIL.Image')]),
+                                Assign(
+                                  targets=[
+                                    Name(id='img_bytes', ctx=Store())],
+                                  value=Call(
+                                    func=Attribute(
+                                      value=Name(id='base64', ctx=Load()),
+                                      attr='b64decode',
+                                      ctx=Load()),
+                                    args=[
+                                      Subscript(
+                                        value=Name(id='obj', ctx=Load()),
+                                        slice=Constant(value='data'),
+                                        ctx=Load())])),
+                                Return(
+                                  value=Call(
+                                    func=Attribute(
+                                      value=Attribute(
+                                        value=Name(id='PIL', ctx=Load()),
+                                        attr='Image',
+                                        ctx=Load()),
+                                      attr='open',
+                                      ctx=Load()),
+                                    args=[
+                                      Call(
+                                        func=Name(id='BytesIO', ctx=Load()),
+                                        args=[
+                                          Name(id='img_bytes', ctx=Load())])]))],
+                              handlers=[
+                                ExceptHandler(
+                                  type=Name(id='ImportError', ctx=Load()),
+                                  body=[
+                                    Return(
+                                      value=Dict(
+                                        keys=[
+                                          Constant(value='__type__'),
+                                          Constant(value='data')],
+                                        values=[
+                                          Constant(value='PIL.Image'),
+                                          Subscript(
+                                            value=Name(id='obj', ctx=Load()),
+                                            slice=Constant(value='data'),
+                                            ctx=Load())]))])])],
+                          orelse=[
+                            If(
+                              test=Compare(
+                                left=Name(id='obj_type', ctx=Load()),
+                                ops=[
+                                  Eq()],
+                                comparators=[
+                                  Constant(value='set')]),
+                              body=[
+                                Return(
+                                  value=Call(
+                                    func=Name(id='set', ctx=Load()),
+                                    args=[
+                                      GeneratorExp(
+                                        elt=Call(
+                                          func=Attribute(
+                                            value=Name(id='SafeSerializer', ctx=Load()),
+                                            attr='from_json_safe',
+                                            ctx=Load()),
+                                          args=[
+                                            Name(id='item', ctx=Load())]),
+                                        generators=[
+                                          comprehension(
+                                            target=Name(id='item', ctx=Store()),
+                                            iter=Subscript(
+                                              value=Name(id='obj', ctx=Load()),
+                                              slice=Constant(value='data'),
+                                              ctx=Load()),
+                                            is_async=0)])]))],
+                              orelse=[
+                                If(
+                                  test=Compare(
+                                    left=Name(id='obj_type', ctx=Load()),
+                                    ops=[
+                                      Eq()],
+                                    comparators=[
+                                      Constant(value='tuple')]),
+                                  body=[
+                                    Return(
+                                      value=Call(
+                                        func=Name(id='tuple', ctx=Load()),
+                                        args=[
+                                          GeneratorExp(
+                                            elt=Call(
+                                              func=Attribute(
+                                                value=Name(id='SafeSerializer', ctx=Load()),
+                                                attr='from_json_safe',
+                                                ctx=Load()),
+                                              args=[
+                                                Name(id='item', ctx=Load())]),
+                                            generators=[
+                                              comprehension(
+                                                target=Name(id='item', ctx=Store()),
+                                                iter=Subscript(
+                                                  value=Name(id='obj', ctx=Load()),
+                                                  slice=Constant(value='data'),
+                                                  ctx=Load()),
+                                                is_async=0)])]))],
+                                  orelse=[
+                                    If(
+                                      test=Compare(
+                                        left=Name(id='obj_type', ctx=Load()),
+                                        ops=[
+                                          Eq()],
+                                        comparators=[
+                                          Constant(value='complex')]),
+                                      body=[
+                                        Return(
+                                          value=Call(
+                                            func=Name(id='complex', ctx=Load()),
+                                            args=[
+                                              Subscript(
+                                                value=Name(id='obj', ctx=Load()),
+                                                slice=Constant(value='real'),
+                                                ctx=Load()),
+                                              Subscript(
+                                                value=Name(id='obj', ctx=Load()),
+                                                slice=Constant(value='imag'),
+                                                ctx=Load())]))],
+                                      orelse=[
+                                        If(
+                                          test=Compare(
+                                            left=Name(id='obj_type', ctx=Load()),
+                                            ops=[
+                                              Eq()],
+                                            comparators=[
+                                              Constant(value='frozenset')]),
+                                          body=[
+                                            Return(
+                                              value=Call(
+                                                func=Name(id='frozenset', ctx=Load()),
+                                                args=[
+                                                  GeneratorExp(
+                                                    elt=Call(
+                                                      func=Attribute(
+                                                        value=Name(id='SafeSerializer', ctx=Load()),
+                                                        attr='from_json_safe',
+                                                        ctx=Load()),
+                                                      args=[
+                                                        Name(id='item', ctx=Load())]),
+                                                    generators=[
+                                                      comprehension(
+                                                        target=Name(id='item', ctx=Store()),
+                                                        iter=Subscript(
+                                                          value=Name(id='obj', ctx=Load()),
+                                                          slice=Constant(value='data'),
+                                                          ctx=Load()),
+                                                        is_async=0)])]))],
+                                          orelse=[
+                                            If(
+                                              test=Compare(
+                                                left=Name(id='obj_type', ctx=Load()),
+                                                ops=[
+                                                  Eq()],
+                                                comparators=[
+                                                  Constant(value='dict_with_complex_keys')]),
+                                              body=[
+                                                Return(
+                                                  value=DictComp(
+                                                    key=Call(
+                                                      func=Attribute(
+                                                        value=Name(id='SafeSerializer', ctx=Load()),
+                                                        attr='from_json_safe',
+                                                        ctx=Load()),
+                                                      args=[
+                                                        Name(id='k', ctx=Load())]),
+                                                    value=Call(
+                                                      func=Attribute(
+                                                        value=Name(id='SafeSerializer', ctx=Load()),
+                                                        attr='from_json_safe',
+                                                        ctx=Load()),
+                                                      args=[
+                                                        Name(id='v', ctx=Load())]),
+                                                    generators=[
+                                                      comprehension(
+                                                        target=Tuple(
+                                                          elts=[
+                                                            Name(id='k', ctx=Store()),
+                                                            Name(id='v', ctx=Store())],
+                                                          ctx=Store()),
+                                                        iter=Subscript(
+                                                          value=Name(id='obj', ctx=Load()),
+                                                          slice=Constant(value='data'),
+                                                          ctx=Load()),
+                                                        is_async=0)]))],
+                                              orelse=[
+                                                If(
+                                                  test=Compare(
+                                                    left=Name(id='obj_type', ctx=Load()),
+                                                    ops=[
+                                                      Eq()],
+                                                    comparators=[
+                                                      Constant(value='datetime')]),
+                                                  body=[
+                                                    ImportFrom(
+                                                      module='datetime',
+                                                      names=[
+                                                        alias(name='datetime')],
+                                                      level=0),
+                                                    Return(
+                                                      value=Call(
+                                                        func=Attribute(
+                                                          value=Name(id='datetime', ctx=Load()),
+                                                          attr='fromisoformat',
+                                                          ctx=Load()),
+                                                        args=[
+                                                          Subscript(
+                                                            value=Name(id='obj', ctx=Load()),
+                                                            slice=Constant(value='data'),
+                                                            ctx=Load())]))],
+                                                  orelse=[
+                                                    If(
+                                                      test=Compare(
+                                                        left=Name(id='obj_type', ctx=Load()),
+                                                        ops=[
+                                                          Eq()],
+                                                        comparators=[
+                                                          Constant(value='date')]),
+                                                      body=[
+                                                        ImportFrom(
+                                                          module='datetime',
+                                                          names=[
+                                                            alias(name='date')],
+                                                          level=0),
+                                                        Return(
+                                                          value=Call(
+                                                            func=Attribute(
+                                                              value=Name(id='date', ctx=Load()),
+                                                              attr='fromisoformat',
+                                                              ctx=Load()),
+                                                            args=[
+                                                              Subscript(
+                                                                value=Name(id='obj', ctx=Load()),
+                                                                slice=Constant(value='data'),
+                                                                ctx=Load())]))],
+                                                      orelse=[
+                                                        If(
+                                                          test=Compare(
+                                                            left=Name(id='obj_type', ctx=Load()),
+                                                            ops=[
+                                                              Eq()],
+                                                            comparators=[
+                                                              Constant(value='time')]),
+                                                          body=[
+                                                            ImportFrom(
+                                                              module='datetime',
+                                                              names=[
+                                                                alias(name='time')],
+                                                              level=0),
+                                                            Return(
+                                                              value=Call(
+                                                                func=Attribute(
+                                                                  value=Name(id='time', ctx=Load()),
+                                                                  attr='fromisoformat',
+                                                                  ctx=Load()),
+                                                                args=[
+                                                                  Subscript(
+                                                                    value=Name(id='obj', ctx=Load()),
+                                                                    slice=Constant(value='data'),
+                                                                    ctx=Load())]))],
+                                                          orelse=[
+                                                            If(
+                                                              test=Compare(
+                                                                left=Name(id='obj_type', ctx=Load()),
+                                                                ops=[
+                                                                  Eq()],
+                                                                comparators=[
+                                                                  Constant(value='timedelta')]),
+                                                              body=[
+                                                                ImportFrom(
+                                                                  module='datetime',
+                                                                  names=[
+                                                                    alias(name='timedelta')],
+                                                                  level=0),
+                                                                Return(
+                                                                  value=Call(
+                                                                    func=Name(id='timedelta', ctx=Load()),
+                                                                    keywords=[
+                                                                      keyword(
+                                                                        arg='seconds',
+                                                                        value=Subscript(
+                                                                          value=Name(id='obj', ctx=Load()),
+                                                                          slice=Constant(value='total_seconds'),
+                                                                          ctx=Load()))]))],
+                                                              orelse=[
+                                                                If(
+                                                                  test=Compare(
+                                                                    left=Name(id='obj_type', ctx=Load()),
+                                                                    ops=[
+                                                                      Eq()],
+                                                                    comparators=[
+                                                                      Constant(value='Decimal')]),
+                                                                  body=[
+                                                                    ImportFrom(
+                                                                      module='decimal',
+                                                                      names=[
+                                                                        alias(name='Decimal')],
+                                                                      level=0),
+                                                                    Return(
+                                                                      value=Call(
+                                                                        func=Name(id='Decimal', ctx=Load()),
+                                                                        args=[
+                                                                          Subscript(
+                                                                            value=Name(id='obj', ctx=Load()),
+                                                                            slice=Constant(value='data'),
+                                                                            ctx=Load())]))],
+                                                                  orelse=[
+                                                                    If(
+                                                                      test=Compare(
+                                                                        left=Name(id='obj_type', ctx=Load()),
+                                                                        ops=[
+                                                                          Eq()],
+                                                                        comparators=[
+                                                                          Constant(value='Path')]),
+                                                                      body=[
+                                                                        ImportFrom(
+                                                                          module='pathlib',
+                                                                          names=[
+                                                                            alias(name='Path')],
+                                                                          level=0),
+                                                                        Return(
+                                                                          value=Call(
+                                                                            func=Name(id='Path', ctx=Load()),
+                                                                            args=[
+                                                                              Subscript(
+                                                                                value=Name(id='obj', ctx=Load()),
+                                                                                slice=Constant(value='data'),
+                                                                                ctx=Load())]))],
+                                                                      orelse=[
+                                                                        If(
+                                                                          test=Compare(
+                                                                            left=Name(id='obj_type', ctx=Load()),
+                                                                            ops=[
+                                                                              Eq()],
+                                                                            comparators=[
+                                                                              Constant(value='ndarray')]),
+                                                                          body=[
+                                                                            Try(
+                                                                              body=[
+                                                                                Import(
+                                                                                  names=[
+                                                                                    alias(name='numpy', asname='np')]),
+                                                                                Return(
+                                                                                  value=Call(
+                                                                                    func=Attribute(
+                                                                                      value=Name(id='np', ctx=Load()),
+                                                                                      attr='array',
+                                                                                      ctx=Load()),
+                                                                                    args=[
+                                                                                      Subscript(
+                                                                                        value=Name(id='obj', ctx=Load()),
+                                                                                        slice=Constant(value='data'),
+                                                                                        ctx=Load())],
+                                                                                    keywords=[
+                                                                                      keyword(
+                                                                                        arg='dtype',
+                                                                                        value=Subscript(
+                                                                                          value=Name(id='obj', ctx=Load()),
+                                                                                          slice=Constant(value='dtype'),
+                                                                                          ctx=Load()))]))],
+                                                                              handlers=[
+                                                                                ExceptHandler(
+                                                                                  type=Name(id='ImportError', ctx=Load()),
+                                                                                  body=[
+                                                                                    Return(
+                                                                                      value=Subscript(
+                                                                                        value=Name(id='obj', ctx=Load()),
+                                                                                        slice=Constant(value='data'),
+                                                                                        ctx=Load()))])])],
+                                                                          orelse=[
+                                                                            If(
+                                                                              test=Compare(
+                                                                                left=Name(id='obj_type', ctx=Load()),
+                                                                                ops=[
+                                                                                  Eq()],
+                                                                                comparators=[
+                                                                                  Constant(value='dataclass')]),
+                                                                              body=[
+                                                                                Return(
+                                                                                  value=Dict(
+                                                                                    keys=[
+                                                                                      Constant(value='__dataclass__'),
+                                                                                      Constant(value='__module__'),
+                                                                                      None],
+                                                                                    values=[
+                                                                                      Subscript(
+                                                                                        value=Name(id='obj', ctx=Load()),
+                                                                                        slice=Constant(value='class_name'),
+                                                                                        ctx=Load()),
+                                                                                      Subscript(
+                                                                                        value=Name(id='obj', ctx=Load()),
+                                                                                        slice=Constant(value='module'),
+                                                                                        ctx=Load()),
+                                                                                      DictComp(
+                                                                                        key=Name(id='k', ctx=Load()),
+                                                                                        value=Call(
+                                                                                          func=Attribute(
+                                                                                            value=Name(id='SafeSerializer', ctx=Load()),
+                                                                                            attr='from_json_safe',
+                                                                                            ctx=Load()),
+                                                                                          args=[
+                                                                                            Name(id='v', ctx=Load())]),
+                                                                                        generators=[
+                                                                                          comprehension(
+                                                                                            target=Tuple(
+                                                                                              elts=[
+                                                                                                Name(id='k', ctx=Store()),
+                                                                                                Name(id='v', ctx=Store())],
+                                                                                              ctx=Store()),
+                                                                                            iter=Call(
+                                                                                              func=Attribute(
+                                                                                                value=Subscript(
+                                                                                                  value=Name(id='obj', ctx=Load()),
+                                                                                                  slice=Constant(value='data'),
+                                                                                                  ctx=Load()),
+                                                                                                attr='items',
+                                                                                                ctx=Load())),
+                                                                                            is_async=0)])]))])])])])])])])])])])])])])])])]),
+                Return(
+                  value=DictComp(
+                    key=Name(id='k', ctx=Load()),
+                    value=Call(
+                      func=Attribute(
+                        value=Name(id='SafeSerializer', ctx=Load()),
+                        attr='from_json_safe',
+                        ctx=Load()),
+                      args=[
+                        Name(id='v', ctx=Load())]),
+                    generators=[
+                      comprehension(
+                        target=Tuple(
+                          elts=[
+                            Name(id='k', ctx=Store()),
+                            Name(id='v', ctx=Store())],
+                          ctx=Store()),
+                        iter=Call(
+                          func=Attribute(
+                            value=Name(id='obj', ctx=Load()),
+                            attr='items',
+                            ctx=Load())),
+                        is_async=0)]))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Name(id='isinstance', ctx=Load()),
+                    args=[
+                      Name(id='obj', ctx=Load()),
+                      Name(id='list', ctx=Load())]),
+                  body=[
+                    Return(
+                      value=ListComp(
+                        elt=Call(
+                          func=Attribute(
+                            value=Name(id='SafeSerializer', ctx=Load()),
+                            attr='from_json_safe',
+                            ctx=Load()),
+                          args=[
+                            Name(id='item', ctx=Load())]),
+                        generators=[
+                          comprehension(
+                            target=Name(id='item', ctx=Store()),
+                            iter=Name(id='obj', ctx=Load()),
+                            is_async=0)]))])]),
+            Return(
+              value=Name(id='obj', ctx=Load()))],
+          decorator_list=[
+            Name(id='staticmethod', ctx=Load())],
+          returns=Name(id='Any', ctx=Load())),
+        FunctionDef(
+          name='dumps',
+          args=arguments(
+            args=[
+              arg(
+                arg='obj',
+                annotation=Name(id='Any', ctx=Load())),
+              arg(
+                arg='allow_pickle',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Serialize object to string.\n\n        Args:\n            obj: Object to serialize\n            allow_pickle: If False (default), use ONLY safe JSON serialization (error if fails).\n                         If True, try safe first, fallback to pickle with warning.\n\n        Returns:\n            str: Serialized string ("safe:..." for JSON, "pickle:..." for pickle)\n\n        Raises:\n            SerializationError: If allow_pickle=False and object cannot be safely serialized\n        ')),
+            If(
+              test=UnaryOp(
+                op=Not(),
+                operand=Name(id='allow_pickle', ctx=Load())),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='json_safe', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='SafeSerializer', ctx=Load()),
+                      attr='to_json_safe',
+                      ctx=Load()),
+                    args=[
+                      Name(id='obj', ctx=Load())])),
+                Return(
+                  value=BinOp(
+                    left=Attribute(
+                      value=Name(id='SafeSerializer', ctx=Load()),
+                      attr='SAFE_PREFIX',
+                      ctx=Load()),
+                    op=Add(),
+                    right=Call(
+                      func=Attribute(
+                        value=Name(id='json', ctx=Load()),
+                        attr='dumps',
+                        ctx=Load()),
+                      args=[
+                        Name(id='json_safe', ctx=Load())])))],
+              orelse=[
+                Try(
+                  body=[
+                    Assign(
+                      targets=[
+                        Name(id='json_safe', ctx=Store())],
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='SafeSerializer', ctx=Load()),
+                          attr='to_json_safe',
+                          ctx=Load()),
+                        args=[
+                          Name(id='obj', ctx=Load())])),
+                    Return(
+                      value=BinOp(
+                        left=Attribute(
+                          value=Name(id='SafeSerializer', ctx=Load()),
+                          attr='SAFE_PREFIX',
+                          ctx=Load()),
+                        op=Add(),
+                        right=Call(
+                          func=Attribute(
+                            value=Name(id='json', ctx=Load()),
+                            attr='dumps',
+                            ctx=Load()),
+                          args=[
+                            Name(id='json_safe', ctx=Load())])))],
+                  handlers=[
+                    ExceptHandler(
+                      type=Name(id='SerializationError', ctx=Load()),
+                      body=[
+                        Import(
+                          names=[
+                            alias(name='warnings')]),
+                        Expr(
+                          value=Call(
+                            func=Attribute(
+                              value=Name(id='warnings', ctx=Load()),
+                              attr='warn',
+                              ctx=Load()),
+                            args=[
+                              Constant(value='Falling back to insecure pickle serialization. This is a security risk and will be removed in a future version. Consider using only safe serializable types (primitives, lists, dicts, numpy arrays, PIL images, datetime objects, dataclasses).'),
+                              Name(id='FutureWarning', ctx=Load())],
+                            keywords=[
+                              keyword(
+                                arg='stacklevel',
+                                value=Constant(value=2))])),
+                        Try(
+                          body=[
+                            Return(
+                              value=BinOp(
+                                left=Constant(value='pickle:'),
+                                op=Add(),
+                                right=Call(
+                                  func=Attribute(
+                                    value=Call(
+                                      func=Attribute(
+                                        value=Name(id='base64', ctx=Load()),
+                                        attr='b64encode',
+                                        ctx=Load()),
+                                      args=[
+                                        Call(
+                                          func=Attribute(
+                                            value=Name(id='pickle', ctx=Load()),
+                                            attr='dumps',
+                                            ctx=Load()),
+                                          args=[
+                                            Name(id='obj', ctx=Load())])]),
+                                    attr='decode',
+                                    ctx=Load()))))],
+                          handlers=[
+                            ExceptHandler(
+                              type=Tuple(
+                                elts=[
+                                  Attribute(
+                                    value=Name(id='pickle', ctx=Load()),
+                                    attr='PicklingError',
+                                    ctx=Load()),
+                                  Name(id='TypeError', ctx=Load()),
+                                  Name(id='AttributeError', ctx=Load())],
+                                ctx=Load()),
+                              name='e',
+                              body=[
+                                Raise(
+                                  exc=Call(
+                                    func=Name(id='SerializationError', ctx=Load()),
+                                    args=[
+                                      JoinedStr(
+                                        values=[
+                                          Constant(value='Cannot serialize object: '),
+                                          FormattedValue(
+                                            value=Name(id='e', ctx=Load()),
+                                            conversion=-1)])]),
+                                  cause=Name(id='e', ctx=Load()))])])])])])],
+          decorator_list=[
+            Name(id='staticmethod', ctx=Load())],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='loads',
+          args=arguments(
+            args=[
+              arg(
+                arg='data',
+                annotation=Name(id='str', ctx=Load())),
+              arg(
+                arg='allow_pickle',
+                annotation=Name(id='bool', ctx=Load()))],
+            defaults=[
+              Constant(value=False)]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Deserialize string with format detection.\n\n        Args:\n            data: Serialized string (with "safe:" or "pickle:" prefix)\n            allow_pickle: If False (default), reject pickle data (strict safe mode).\n                         If True, accept both safe and pickle formats.\n\n        Returns:\n            Deserialized object\n\n        Raises:\n            SerializationError: If pickle data received but allow_pickle=False\n        ')),
+            If(
+              test=Call(
+                func=Attribute(
+                  value=Name(id='data', ctx=Load()),
+                  attr='startswith',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='SafeSerializer', ctx=Load()),
+                    attr='SAFE_PREFIX',
+                    ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='json_data', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='json', ctx=Load()),
+                      attr='loads',
+                      ctx=Load()),
+                    args=[
+                      Subscript(
+                        value=Name(id='data', ctx=Load()),
+                        slice=Slice(
+                          lower=Call(
+                            func=Name(id='len', ctx=Load()),
+                            args=[
+                              Attribute(
+                                value=Name(id='SafeSerializer', ctx=Load()),
+                                attr='SAFE_PREFIX',
+                                ctx=Load())])),
+                        ctx=Load())])),
+                Return(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='SafeSerializer', ctx=Load()),
+                      attr='from_json_safe',
+                      ctx=Load()),
+                    args=[
+                      Name(id='json_data', ctx=Load())]))],
+              orelse=[
+                If(
+                  test=Call(
+                    func=Attribute(
+                      value=Name(id='data', ctx=Load()),
+                      attr='startswith',
+                      ctx=Load()),
+                    args=[
+                      Constant(value='pickle:')]),
+                  body=[
+                    If(
+                      test=UnaryOp(
+                        op=Not(),
+                        operand=Name(id='allow_pickle', ctx=Load())),
+                      body=[
+                        Raise(
+                          exc=Call(
+                            func=Name(id='SerializationError', ctx=Load()),
+                            args=[
+                              Constant(value='Pickle data rejected: allow_pickle=False requires safe-only data. This data is pickle-serialized. To deserialize it, set allow_pickle=True (not recommended for untrusted data).')]))]),
+                    Import(
+                      names=[
+                        alias(name='warnings')]),
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='warnings', ctx=Load()),
+                          attr='warn',
+                          ctx=Load()),
+                        args=[
+                          Constant(value='Deserializing pickle data. This is a security risk if the data is untrusted.'),
+                          Name(id='FutureWarning', ctx=Load())],
+                        keywords=[
+                          keyword(
+                            arg='stacklevel',
+                            value=Constant(value=2))])),
+                    Return(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='pickle', ctx=Load()),
+                          attr='loads',
+                          ctx=Load()),
+                        args=[
+                          Call(
+                            func=Attribute(
+                              value=Name(id='base64', ctx=Load()),
+                              attr='b64decode',
+                              ctx=Load()),
+                            args=[
+                              Subscript(
+                                value=Name(id='data', ctx=Load()),
+                                slice=Slice(
+                                  lower=Constant(value=7)),
+                                ctx=Load())])]))],
+                  orelse=[
+                    If(
+                      test=UnaryOp(
+                        op=Not(),
+                        operand=Name(id='allow_pickle', ctx=Load())),
+                      body=[
+                        Raise(
+                          exc=Call(
+                            func=Name(id='SerializationError', ctx=Load()),
+                            args=[
+                              Constant(value='Pickle data rejected: allow_pickle=False requires safe-only data. This data appears to be pickle-serialized (legacy format). To deserialize it, set allow_pickle=True (not recommended for untrusted data).')]))]),
+                    Import(
+                      names=[
+                        alias(name='warnings')]),
+                    Expr(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='warnings', ctx=Load()),
+                          attr='warn',
+                          ctx=Load()),
+                        args=[
+                          Constant(value='Deserializing pickle data. This is a security risk if the data is untrusted.'),
+                          Name(id='FutureWarning', ctx=Load())],
+                        keywords=[
+                          keyword(
+                            arg='stacklevel',
+                            value=Constant(value=2))])),
+                    Return(
+                      value=Call(
+                        func=Attribute(
+                          value=Name(id='pickle', ctx=Load()),
+                          attr='loads',
+                          ctx=Load()),
+                        args=[
+                          Call(
+                            func=Attribute(
+                              value=Name(id='base64', ctx=Load()),
+                              attr='b64decode',
+                              ctx=Load()),
+                            args=[
+                              Name(id='data', ctx=Load())])]))])])],
+          decorator_list=[
+            Name(id='staticmethod', ctx=Load())],
+          returns=Name(id='Any', ctx=Load())),
+        FunctionDef(
+          name='_extract_method_body',
+          args=arguments(
+            args=[
+              arg(arg='method')]),
+          body=[
+            Expr(
+              value=Constant(value='Extract method body without the def line and dedent it.')),
+            Import(
+              names=[
+                alias(name='inspect')]),
+            Import(
+              names=[
+                alias(name='textwrap')]),
+            Assign(
+              targets=[
+                Name(id='source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='inspect', ctx=Load()),
+                  attr='getsource',
+                  ctx=Load()),
+                args=[
+                  Name(id='method', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='lines', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='source', ctx=Load()),
+                  attr='split',
+                  ctx=Load()),
+                args=[
+                  Constant(value='\n')])),
+            Assign(
+              targets=[
+                Name(id='body_start', ctx=Store())],
+              value=Constant(value=0)),
+            For(
+              target=Tuple(
+                elts=[
+                  Name(id='i', ctx=Store()),
+                  Name(id='line', ctx=Store())],
+                ctx=Store()),
+              iter=Call(
+                func=Name(id='enumerate', ctx=Load()),
+                args=[
+                  Name(id='lines', ctx=Load())]),
+              body=[
+                If(
+                  test=BoolOp(
+                    op=And(),
+                    values=[
+                      Compare(
+                        left=Constant(value='"""'),
+                        ops=[
+                          In()],
+                        comparators=[
+                          Name(id='line', ctx=Load())]),
+                      Compare(
+                        left=Name(id='i', ctx=Load()),
+                        ops=[
+                          Gt()],
+                        comparators=[
+                          Constant(value=0)])]),
+                  body=[
+                    If(
+                      test=Compare(
+                        left=Call(
+                          func=Attribute(
+                            value=Name(id='line', ctx=Load()),
+                            attr='count',
+                            ctx=Load()),
+                          args=[
+                            Constant(value='"""')]),
+                        ops=[
+                          Eq()],
+                        comparators=[
+                          Constant(value=2)]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Name(id='body_start', ctx=Store())],
+                          value=BinOp(
+                            left=Name(id='i', ctx=Load()),
+                            op=Add(),
+                            right=Constant(value=1))),
+                        Break()]),
+                    For(
+                      target=Name(id='j', ctx=Store()),
+                      iter=Call(
+                        func=Name(id='range', ctx=Load()),
+                        args=[
+                          BinOp(
+                            left=Name(id='i', ctx=Load()),
+                            op=Add(),
+                            right=Constant(value=1)),
+                          Call(
+                            func=Name(id='len', ctx=Load()),
+                            args=[
+                              Name(id='lines', ctx=Load())])]),
+                      body=[
+                        If(
+                          test=Compare(
+                            left=Constant(value='"""'),
+                            ops=[
+                              In()],
+                            comparators=[
+                              Subscript(
+                                value=Name(id='lines', ctx=Load()),
+                                slice=Name(id='j', ctx=Load()),
+                                ctx=Load())]),
+                          body=[
+                            Assign(
+                              targets=[
+                                Name(id='body_start', ctx=Store())],
+                              value=BinOp(
+                                left=Name(id='j', ctx=Load()),
+                                op=Add(),
+                                right=Constant(value=1))),
+                            Break()])]),
+                    Break()],
+                  orelse=[
+                    If(
+                      test=BoolOp(
+                        op=And(),
+                        values=[
+                          Call(
+                            func=Attribute(
+                              value=Name(id='line', ctx=Load()),
+                              attr='strip',
+                              ctx=Load())),
+                          UnaryOp(
+                            op=Not(),
+                            operand=Call(
+                              func=Attribute(
+                                value=Call(
+                                  func=Attribute(
+                                    value=Name(id='line', ctx=Load()),
+                                    attr='strip',
+                                    ctx=Load())),
+                                attr='startswith',
+                                ctx=Load()),
+                              args=[
+                                Constant(value='def ')])),
+                          UnaryOp(
+                            op=Not(),
+                            operand=Call(
+                              func=Attribute(
+                                value=Call(
+                                  func=Attribute(
+                                    value=Name(id='line', ctx=Load()),
+                                    attr='strip',
+                                    ctx=Load())),
+                                attr='startswith',
+                                ctx=Load()),
+                              args=[
+                                Constant(value='@')]))]),
+                      body=[
+                        Assign(
+                          targets=[
+                            Name(id='body_start', ctx=Store())],
+                          value=Name(id='i', ctx=Load())),
+                        Break()])])]),
+            Assign(
+              targets=[
+                Name(id='body', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Constant(value='\n'),
+                  attr='join',
+                  ctx=Load()),
+                args=[
+                  Subscript(
+                    value=Name(id='lines', ctx=Load()),
+                    slice=Slice(
+                      lower=Name(id='body_start', ctx=Load())),
+                    ctx=Load())])),
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='textwrap', ctx=Load()),
+                  attr='dedent',
+                  ctx=Load()),
+                args=[
+                  Name(id='body', ctx=Load())]))],
+          decorator_list=[
+            Name(id='staticmethod', ctx=Load())],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='get_safe_serializer_code',
+          args=arguments(),
+          body=[
+            Expr(
+              value=Constant(value='\n        Returns the SafeSerializer class definition as string for injection into sandbox.\n\n        This generates a standalone version from the actual implementation to avoid duplication.\n        ')),
+            Import(
+              names=[
+                alias(name='inspect')]),
+            Assign(
+              targets=[
+                Name(id='to_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='inspect', ctx=Load()),
+                  attr='getsource',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='SafeSerializer', ctx=Load()),
+                    attr='to_json_safe',
+                    ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='to_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='to_json_safe_source', ctx=Load()),
+                  attr='replace',
+                  ctx=Load()),
+                args=[
+                  Constant(value='@staticmethod\n    '),
+                  Constant(value='')])),
+            Assign(
+              targets=[
+                Name(id='to_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='to_json_safe_source', ctx=Load()),
+                  attr='replace',
+                  ctx=Load()),
+                args=[
+                  Constant(value='SafeSerializer.to_json_safe'),
+                  Constant(value='to_json_safe')])),
+            Assign(
+              targets=[
+                Name(id='from_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='inspect', ctx=Load()),
+                  attr='getsource',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='SafeSerializer', ctx=Load()),
+                    attr='from_json_safe',
+                    ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='from_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='from_json_safe_source', ctx=Load()),
+                  attr='replace',
+                  ctx=Load()),
+                args=[
+                  Constant(value='@staticmethod\n    '),
+                  Constant(value='')])),
+            Assign(
+              targets=[
+                Name(id='from_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='from_json_safe_source', ctx=Load()),
+                  attr='replace',
+                  ctx=Load()),
+                args=[
+                  Constant(value='SafeSerializer.from_json_safe'),
+                  Constant(value='from_json_safe')])),
+            Return(
+              value=JoinedStr(
+                values=[
+                  Constant(value='\nclass SerializationError(Exception):\n    """Raised when a type cannot be safely serialized."""\n    pass\n\nclass SafeSerializer:\n    """Safe JSON-based serializer for sandbox use."""\n\n    SAFE_PREFIX = "safe:"\n\n    '),
+                  FormattedValue(
+                    value=Name(id='to_json_safe_source', ctx=Load()),
+                    conversion=-1),
+                  Constant(value='\n\n    '),
+                  FormattedValue(
+                    value=Name(id='from_json_safe_source', ctx=Load()),
+                    conversion=-1),
+                  Constant(value='\n\n    @staticmethod\n    def dumps(obj, allow_pickle=False):\n        import json\n        import base64\n        import pickle\n\n        if not allow_pickle:\n            # Safe ONLY - no pickle fallback\n            json_safe = to_json_safe(obj)  # Raises SerializationError if fails\n            return SafeSerializer.SAFE_PREFIX + json.dumps(json_safe)\n        else:\n            # Try safe first, fallback to pickle if allowed\n            try:\n                json_safe = to_json_safe(obj)\n                return SafeSerializer.SAFE_PREFIX + json.dumps(json_safe)\n            except SerializationError:\n                try:\n                    return "pickle:" + base64.b64encode(pickle.dumps(obj)).decode()\n                except (pickle.PicklingError, TypeError, AttributeError) as e:\n                    raise SerializationError(f"Cannot serialize object: {e}") from e\n\n    @staticmethod\n    def loads(data, allow_pickle=False):\n        import json\n        import base64\n        import pickle\n\n        if data.startswith(SafeSerializer.SAFE_PREFIX):\n            json_data = json.loads(data[len(SafeSerializer.SAFE_PREFIX):])\n            return from_json_safe(json_data)\n        elif data.startswith("pickle:"):\n            if not allow_pickle:\n                raise SerializationError("Pickle data rejected: allow_pickle=False")\n            return pickle.loads(base64.b64decode(data[7:]))\n        else:\n            # Legacy format (no prefix) - assume pickle\n            if not allow_pickle:\n                raise SerializationError("Pickle data rejected: allow_pickle=False")\n            return pickle.loads(base64.b64decode(data))\n')]))],
+          decorator_list=[
+            Name(id='staticmethod', ctx=Load())],
+          returns=Name(id='str', ctx=Load())),
+        FunctionDef(
+          name='get_deserializer_code',
+          args=arguments(
+            args=[
+              arg(
+                arg='allow_pickle',
+                annotation=Name(id='bool', ctx=Load()))]),
+          body=[
+            Expr(
+              value=Constant(value='\n        Generate deserializer function for remote execution with setting baked in.\n\n        This generates code from the actual implementation to avoid duplication.\n\n        Args:\n            allow_pickle: Whether to allow pickle deserialization\n\n        Returns:\n            Python code string with _deserialize function\n        ')),
+            Import(
+              names=[
+                alias(name='inspect')]),
+            Import(
+              names=[
+                alias(name='textwrap')]),
+            Assign(
+              targets=[
+                Name(id='from_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='inspect', ctx=Load()),
+                  attr='getsource',
+                  ctx=Load()),
+                args=[
+                  Attribute(
+                    value=Name(id='SafeSerializer', ctx=Load()),
+                    attr='from_json_safe',
+                    ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='from_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='textwrap', ctx=Load()),
+                  attr='dedent',
+                  ctx=Load()),
+                args=[
+                  Name(id='from_json_safe_source', ctx=Load())])),
+            If(
+              test=Call(
+                func=Attribute(
+                  value=Name(id='from_json_safe_source', ctx=Load()),
+                  attr='startswith',
+                  ctx=Load()),
+                args=[
+                  Constant(value='@staticmethod\n')]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='from_json_safe_source', ctx=Store())],
+                  value=Subscript(
+                    value=Name(id='from_json_safe_source', ctx=Load()),
+                    slice=Slice(
+                      lower=Call(
+                        func=Name(id='len', ctx=Load()),
+                        args=[
+                          Constant(value='@staticmethod\n')])),
+                    ctx=Load()))]),
+            Assign(
+              targets=[
+                Name(id='from_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='from_json_safe_source', ctx=Load()),
+                  attr='replace',
+                  ctx=Load()),
+                args=[
+                  Constant(value='def from_json_safe('),
+                  Constant(value='def _from_json_safe(')])),
+            Assign(
+              targets=[
+                Name(id='from_json_safe_source', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='from_json_safe_source', ctx=Load()),
+                  attr='replace',
+                  ctx=Load()),
+                args=[
+                  Constant(value='SafeSerializer.from_json_safe'),
+                  Constant(value='_from_json_safe')])),
+            If(
+              test=Name(id='allow_pickle', ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='prefixed_pickle_branch', ctx=Store())],
+                  value=List(
+                    elts=[
+                      Constant(value='        import pickle'),
+                      Constant(value='        return pickle.loads(base64.b64decode(data[7:]))')],
+                    ctx=Load())),
+                Assign(
+                  targets=[
+                    Name(id='legacy_pickle_branch', ctx=Store())],
+                  value=List(
+                    elts=[
+                      Constant(value='        import pickle'),
+                      Constant(value='        return pickle.loads(base64.b64decode(data))')],
+                    ctx=Load()))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Name(id='prefixed_pickle_branch', ctx=Store())],
+                  value=List(
+                    elts=[
+                      Constant(value='        raise SerializationError("Pickle data rejected: allow_pickle=False")')],
+                    ctx=Load())),
+                Assign(
+                  targets=[
+                    Name(id='legacy_pickle_branch', ctx=Store())],
+                  value=List(
+                    elts=[
+                      Constant(value='        raise SerializationError("Pickle data rejected: allow_pickle=False")')],
+                    ctx=Load()))]),
+            Assign(
+              targets=[
+                Name(id='lines', ctx=Store())],
+              value=List(
+                elts=[
+                  Constant(value='import base64'),
+                  Constant(value='from io import BytesIO'),
+                  Constant(value='from typing import Any'),
+                  Constant(value=''),
+                  Constant(value='class SerializationError(Exception):'),
+                  Constant(value='    pass'),
+                  Constant(value=''),
+                  Call(
+                    func=Attribute(
+                      value=Name(id='from_json_safe_source', ctx=Load()),
+                      attr='rstrip',
+                      ctx=Load())),
+                  Constant(value=''),
+                  Constant(value='def _deserialize(data):'),
+                  Constant(value='    import json'),
+                  Constant(value='    if isinstance(data, str) and data.startswith("safe:"):'),
+                  Constant(value='        json_data = json.loads(data[5:])'),
+                  Constant(value='        return _from_json_safe(json_data)'),
+                  Constant(value='    elif isinstance(data, str) and data.startswith("pickle:"):'),
+                  Starred(
+                    value=Name(id='prefixed_pickle_branch', ctx=Load()),
+                    ctx=Load()),
+                  Constant(value='    else:'),
+                  Constant(value='        # No safe prefix - legacy format, assume pickle'),
+                  Starred(
+                    value=Name(id='legacy_pickle_branch', ctx=Load()),
+                    ctx=Load()),
+                  Constant(value='')],
+                ctx=Load())),
+            Return(
+              value=Call(
+                func=Attribute(
+                  value=Constant(value='\n'),
+                  attr='join',
+                  ctx=Load()),
+                args=[
+                  Name(id='lines', ctx=Load())]))],
+          decorator_list=[
+            Name(id='staticmethod', ctx=Load())],
+          returns=Name(id='str', ctx=Load()))])])

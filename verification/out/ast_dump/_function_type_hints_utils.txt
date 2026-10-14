@@ -1,0 +1,1556 @@
+Module(
+  body=[
+    Expr(
+      value=Constant(value='This module contains utilities exclusively taken from `transformers` repository.\n\nSince they are not specific to `transformers` and that `transformers` is an heavy dependencies, those helpers have\nbeen duplicated.\n\nTODO: move them to `huggingface_hub` to avoid code duplication.\n')),
+    Import(
+      names=[
+        alias(name='inspect')]),
+    Import(
+      names=[
+        alias(name='json')]),
+    Import(
+      names=[
+        alias(name='re')]),
+    Import(
+      names=[
+        alias(name='types')]),
+    ImportFrom(
+      module='collections.abc',
+      names=[
+        alias(name='Callable')],
+      level=0),
+    ImportFrom(
+      module='copy',
+      names=[
+        alias(name='copy')],
+      level=0),
+    ImportFrom(
+      module='typing',
+      names=[
+        alias(name='Any'),
+        alias(name='Literal'),
+        alias(name='Union'),
+        alias(name='get_args'),
+        alias(name='get_origin'),
+        alias(name='get_type_hints')],
+      level=0),
+    Assign(
+      targets=[
+        Name(id='IMPORT_TO_PACKAGE_MAPPING', ctx=Store())],
+      value=Dict(
+        keys=[
+          Constant(value='wikipediaapi')],
+        values=[
+          Constant(value='wikipedia-api')])),
+    FunctionDef(
+      name='get_package_name',
+      args=arguments(
+        args=[
+          arg(
+            arg='import_name',
+            annotation=Name(id='str', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Return the package name for a given import name.\n\n    Args:\n        import_name (`str`): Import name to get the package name for.\n\n    Returns:\n        `str`: Package name for the given import name.\n    ')),
+        Return(
+          value=Call(
+            func=Attribute(
+              value=Name(id='IMPORT_TO_PACKAGE_MAPPING', ctx=Load()),
+              attr='get',
+              ctx=Load()),
+            args=[
+              Name(id='import_name', ctx=Load()),
+              Name(id='import_name', ctx=Load())]))],
+      returns=Name(id='str', ctx=Load())),
+    FunctionDef(
+      name='get_imports',
+      args=arguments(
+        args=[
+          arg(
+            arg='code',
+            annotation=Name(id='str', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Extracts all the libraries (not relative imports) that are imported in a code.\n\n    Args:\n        code (`str`): Code text to inspect.\n\n    Returns:\n        `list[str]`: List of all packages required to use the input code.\n    ')),
+        Assign(
+          targets=[
+            Name(id='code', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='sub',
+              ctx=Load()),
+            args=[
+              Constant(value='\\s*try\\s*:.*?except.*?:'),
+              Constant(value=''),
+              Name(id='code', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='flags',
+                value=Attribute(
+                  value=Name(id='re', ctx=Load()),
+                  attr='DOTALL',
+                  ctx=Load()))])),
+        Assign(
+          targets=[
+            Name(id='code', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='sub',
+              ctx=Load()),
+            args=[
+              Constant(value='if is_flash_attn[a-zA-Z0-9_]+available\\(\\):\\s*(from flash_attn\\s*.*\\s*)+'),
+              Constant(value=''),
+              Name(id='code', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='flags',
+                value=Attribute(
+                  value=Name(id='re', ctx=Load()),
+                  attr='MULTILINE',
+                  ctx=Load()))])),
+        Assign(
+          targets=[
+            Name(id='imports', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='findall',
+              ctx=Load()),
+            args=[
+              Constant(value='^\\s*import\\s+(\\S+?)(?:\\s+as\\s+\\S+)?\\s*$'),
+              Name(id='code', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='flags',
+                value=Attribute(
+                  value=Name(id='re', ctx=Load()),
+                  attr='MULTILINE',
+                  ctx=Load()))])),
+        AugAssign(
+          target=Name(id='imports', ctx=Store()),
+          op=Add(),
+          value=Call(
+            func=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='findall',
+              ctx=Load()),
+            args=[
+              Constant(value='^\\s*from\\s+(\\S+)\\s+import'),
+              Name(id='code', ctx=Load())],
+            keywords=[
+              keyword(
+                arg='flags',
+                value=Attribute(
+                  value=Name(id='re', ctx=Load()),
+                  attr='MULTILINE',
+                  ctx=Load()))])),
+        Assign(
+          targets=[
+            Name(id='imports', ctx=Store())],
+          value=ListComp(
+            elt=Subscript(
+              value=Call(
+                func=Attribute(
+                  value=Name(id='imp', ctx=Load()),
+                  attr='split',
+                  ctx=Load()),
+                args=[
+                  Constant(value='.')]),
+              slice=Constant(value=0),
+              ctx=Load()),
+            generators=[
+              comprehension(
+                target=Name(id='imp', ctx=Store()),
+                iter=Name(id='imports', ctx=Load()),
+                ifs=[
+                  UnaryOp(
+                    op=Not(),
+                    operand=Call(
+                      func=Attribute(
+                        value=Name(id='imp', ctx=Load()),
+                        attr='startswith',
+                        ctx=Load()),
+                      args=[
+                        Constant(value='.')]))],
+                is_async=0)])),
+        Return(
+          value=ListComp(
+            elt=Call(
+              func=Name(id='get_package_name', ctx=Load()),
+              args=[
+                Name(id='import_name', ctx=Load())]),
+            generators=[
+              comprehension(
+                target=Name(id='import_name', ctx=Store()),
+                iter=Call(
+                  func=Name(id='set', ctx=Load()),
+                  args=[
+                    Name(id='imports', ctx=Load())]),
+                is_async=0)]))],
+      returns=Subscript(
+        value=Name(id='list', ctx=Load()),
+        slice=Name(id='str', ctx=Load()),
+        ctx=Load())),
+    ClassDef(
+      name='TypeHintParsingException',
+      bases=[
+        Name(id='Exception', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='Exception raised for errors in parsing type hints to generate JSON schemas'))]),
+    ClassDef(
+      name='DocstringParsingException',
+      bases=[
+        Name(id='Exception', ctx=Load())],
+      body=[
+        Expr(
+          value=Constant(value='Exception raised for errors in parsing docstrings to generate JSON schemas'))]),
+    FunctionDef(
+      name='get_json_schema',
+      args=arguments(
+        args=[
+          arg(
+            arg='func',
+            annotation=Name(id='Callable', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='\n    This function generates a JSON schema for a given function, based on its docstring and type hints. This is\n    mostly used for passing lists of tools to a chat template. The JSON schema contains the name and description of\n    the function, as well as the names, types and descriptions for each of its arguments. `get_json_schema()` requires\n    that the function has a docstring, and that each argument has a description in the docstring, in the standard\n    Google docstring format shown below. It also requires that all the function arguments have a valid Python type hint.\n\n    Although it is not required, a `Returns` block can also be added, which will be included in the schema. This is\n    optional because most chat templates ignore the return value of the function.\n\n    Args:\n        func: The function to generate a JSON schema for.\n\n    Returns:\n        A dictionary containing the JSON schema for the function.\n\n    Examples:\n    ```python\n    >>> def multiply(x: float, y: float):\n    >>>    \'\'\'\n    >>>    A function that multiplies two numbers\n    >>>\n    >>>    Args:\n    >>>        x: The first number to multiply\n    >>>        y: The second number to multiply\n    >>>    \'\'\'\n    >>>    return x * y\n    >>>\n    >>> print(get_json_schema(multiply))\n    {\n        "name": "multiply",\n        "description": "A function that multiplies two numbers",\n        "parameters": {\n            "type": "object",\n            "properties": {\n                "x": {"type": "number", "description": "The first number to multiply"},\n                "y": {"type": "number", "description": "The second number to multiply"}\n            },\n            "required": ["x", "y"]\n        }\n    }\n    ```\n\n    The general use for these schemas is that they are used to generate tool descriptions for chat templates that\n    support them, like so:\n\n    ```python\n    >>> from transformers import AutoTokenizer\n    >>> from transformers.utils import get_json_schema\n    >>>\n    >>> def multiply(x: float, y: float):\n    >>>    \'\'\'\n    >>>    A function that multiplies two numbers\n    >>>\n    >>>    Args:\n    >>>        x: The first number to multiply\n    >>>        y: The second number to multiply\n    >>>    return x * y\n    >>>    \'\'\'\n    >>>\n    >>> multiply_schema = get_json_schema(multiply)\n    >>> tokenizer = AutoTokenizer.from_pretrained("CohereLabs/c4ai-command-r-v01")\n    >>> messages = [{"role": "user", "content": "What is 179 x 4571?"}]\n    >>> formatted_chat = tokenizer.apply_chat_template(\n    >>>     messages,\n    >>>     tools=[multiply_schema],\n    >>>     chat_template="tool_use",\n    >>>     return_dict=True,\n    >>>     return_tensors="pt",\n    >>>     add_generation_prompt=True\n    >>> )\n    >>> # The formatted chat can now be passed to model.generate()\n    ```\n\n    Each argument description can also have an optional `(choices: ...)` block at the end, such as\n    `(choices: ["tea", "coffee"])`, which will be parsed into an `enum` field in the schema. Note that this will\n    only be parsed correctly if it is at the end of the line:\n\n    ```python\n    >>> def drink_beverage(beverage: str):\n    >>>    \'\'\'\n    >>>    A function that drinks a beverage\n    >>>\n    >>>    Args:\n    >>>        beverage: The beverage to drink (choices: ["tea", "coffee"])\n    >>>    \'\'\'\n    >>>    pass\n    >>>\n    >>> print(get_json_schema(drink_beverage))\n    ```\n    {\n        \'name\': \'drink_beverage\',\n        \'description\': \'A function that drinks a beverage\',\n        \'parameters\': {\n            \'type\': \'object\',\n            \'properties\': {\n                \'beverage\': {\n                    \'type\': \'string\',\n                    \'enum\': [\'tea\', \'coffee\'],\n                    \'description\': \'The beverage to drink\'\n                    }\n                },\n            \'required\': [\'beverage\']\n        }\n    }\n    ')),
+        Assign(
+          targets=[
+            Name(id='doc', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='inspect', ctx=Load()),
+              attr='getdoc',
+              ctx=Load()),
+            args=[
+              Name(id='func', ctx=Load())])),
+        If(
+          test=UnaryOp(
+            op=Not(),
+            operand=Name(id='doc', ctx=Load())),
+          body=[
+            Raise(
+              exc=Call(
+                func=Name(id='DocstringParsingException', ctx=Load()),
+                args=[
+                  JoinedStr(
+                    values=[
+                      Constant(value='Cannot generate JSON schema for '),
+                      FormattedValue(
+                        value=Attribute(
+                          value=Name(id='func', ctx=Load()),
+                          attr='__name__',
+                          ctx=Load()),
+                        conversion=-1),
+                      Constant(value=' because it has no docstring!')])]))]),
+        Assign(
+          targets=[
+            Name(id='doc', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='doc', ctx=Load()),
+              attr='strip',
+              ctx=Load()))),
+        Assign(
+          targets=[
+            Tuple(
+              elts=[
+                Name(id='main_doc', ctx=Store()),
+                Name(id='param_descriptions', ctx=Store()),
+                Name(id='return_doc', ctx=Store())],
+              ctx=Store())],
+          value=Call(
+            func=Name(id='_parse_google_format_docstring', ctx=Load()),
+            args=[
+              Name(id='doc', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='json_schema', ctx=Store())],
+          value=Call(
+            func=Name(id='_convert_type_hints_to_json_schema', ctx=Load()),
+            args=[
+              Name(id='func', ctx=Load())])),
+        If(
+          test=Compare(
+            left=NamedExpr(
+              target=Name(id='return_dict', ctx=Store()),
+              value=Call(
+                func=Attribute(
+                  value=Subscript(
+                    value=Name(id='json_schema', ctx=Load()),
+                    slice=Constant(value='properties'),
+                    ctx=Load()),
+                  attr='pop',
+                  ctx=Load()),
+                args=[
+                  Constant(value='return'),
+                  Constant(value=None)])),
+            ops=[
+              IsNot()],
+            comparators=[
+              Constant(value=None)]),
+          body=[
+            If(
+              test=Compare(
+                left=Name(id='return_doc', ctx=Load()),
+                ops=[
+                  IsNot()],
+                comparators=[
+                  Constant(value=None)]),
+              body=[
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Name(id='return_dict', ctx=Load()),
+                      slice=Constant(value='description'),
+                      ctx=Store())],
+                  value=Name(id='return_doc', ctx=Load()))])]),
+        For(
+          target=Tuple(
+            elts=[
+              Name(id='arg', ctx=Store()),
+              Name(id='schema', ctx=Store())],
+            ctx=Store()),
+          iter=Call(
+            func=Attribute(
+              value=Subscript(
+                value=Name(id='json_schema', ctx=Load()),
+                slice=Constant(value='properties'),
+                ctx=Load()),
+              attr='items',
+              ctx=Load())),
+          body=[
+            If(
+              test=Compare(
+                left=Name(id='arg', ctx=Load()),
+                ops=[
+                  NotIn()],
+                comparators=[
+                  Name(id='param_descriptions', ctx=Load())]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='DocstringParsingException', ctx=Load()),
+                    args=[
+                      JoinedStr(
+                        values=[
+                          Constant(value='Cannot generate JSON schema for '),
+                          FormattedValue(
+                            value=Attribute(
+                              value=Name(id='func', ctx=Load()),
+                              attr='__name__',
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=" because the docstring has no description for the argument '"),
+                          FormattedValue(
+                            value=Name(id='arg', ctx=Load()),
+                            conversion=-1),
+                          Constant(value="'")])]))]),
+            Assign(
+              targets=[
+                Name(id='desc', ctx=Store())],
+              value=Subscript(
+                value=Name(id='param_descriptions', ctx=Load()),
+                slice=Name(id='arg', ctx=Load()),
+                ctx=Load())),
+            Assign(
+              targets=[
+                Name(id='enum_choices', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='re', ctx=Load()),
+                  attr='search',
+                  ctx=Load()),
+                args=[
+                  Constant(value='\\(choices:\\s*(.*?)\\)\\s*$'),
+                  Name(id='desc', ctx=Load())],
+                keywords=[
+                  keyword(
+                    arg='flags',
+                    value=Attribute(
+                      value=Name(id='re', ctx=Load()),
+                      attr='IGNORECASE',
+                      ctx=Load()))])),
+            If(
+              test=Name(id='enum_choices', ctx=Load()),
+              body=[
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Name(id='schema', ctx=Load()),
+                      slice=Constant(value='enum'),
+                      ctx=Store())],
+                  value=ListComp(
+                    elt=Call(
+                      func=Attribute(
+                        value=Name(id='c', ctx=Load()),
+                        attr='strip',
+                        ctx=Load())),
+                    generators=[
+                      comprehension(
+                        target=Name(id='c', ctx=Store()),
+                        iter=Call(
+                          func=Attribute(
+                            value=Name(id='json', ctx=Load()),
+                            attr='loads',
+                            ctx=Load()),
+                          args=[
+                            Call(
+                              func=Attribute(
+                                value=Name(id='enum_choices', ctx=Load()),
+                                attr='group',
+                                ctx=Load()),
+                              args=[
+                                Constant(value=1)])]),
+                        is_async=0)])),
+                Assign(
+                  targets=[
+                    Name(id='desc', ctx=Store())],
+                  value=Call(
+                    func=Attribute(
+                      value=Subscript(
+                        value=Attribute(
+                          value=Name(id='enum_choices', ctx=Load()),
+                          attr='string',
+                          ctx=Load()),
+                        slice=Slice(
+                          upper=Call(
+                            func=Attribute(
+                              value=Name(id='enum_choices', ctx=Load()),
+                              attr='start',
+                              ctx=Load()))),
+                        ctx=Load()),
+                      attr='strip',
+                      ctx=Load())))]),
+            Assign(
+              targets=[
+                Subscript(
+                  value=Name(id='schema', ctx=Load()),
+                  slice=Constant(value='description'),
+                  ctx=Store())],
+              value=Name(id='desc', ctx=Load()))]),
+        Assign(
+          targets=[
+            Name(id='output', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='name'),
+              Constant(value='description'),
+              Constant(value='parameters')],
+            values=[
+              Attribute(
+                value=Name(id='func', ctx=Load()),
+                attr='__name__',
+                ctx=Load()),
+              Name(id='main_doc', ctx=Load()),
+              Name(id='json_schema', ctx=Load())])),
+        If(
+          test=Compare(
+            left=Name(id='return_dict', ctx=Load()),
+            ops=[
+              IsNot()],
+            comparators=[
+              Constant(value=None)]),
+          body=[
+            Assign(
+              targets=[
+                Subscript(
+                  value=Name(id='output', ctx=Load()),
+                  slice=Constant(value='return'),
+                  ctx=Store())],
+              value=Name(id='return_dict', ctx=Load()))]),
+        Return(
+          value=Dict(
+            keys=[
+              Constant(value='type'),
+              Constant(value='function')],
+            values=[
+              Constant(value='function'),
+              Name(id='output', ctx=Load())]))],
+      returns=Name(id='dict', ctx=Load())),
+    Assign(
+      targets=[
+        Name(id='description_re', ctx=Store())],
+      value=Call(
+        func=Attribute(
+          value=Name(id='re', ctx=Load()),
+          attr='compile',
+          ctx=Load()),
+        args=[
+          Constant(value='^(.*?)(?=\\n\\s*(Args:|Returns:|Raises:)|\\Z)'),
+          Attribute(
+            value=Name(id='re', ctx=Load()),
+            attr='DOTALL',
+            ctx=Load())])),
+    Assign(
+      targets=[
+        Name(id='args_re', ctx=Store())],
+      value=Call(
+        func=Attribute(
+          value=Name(id='re', ctx=Load()),
+          attr='compile',
+          ctx=Load()),
+        args=[
+          Constant(value='\\n\\s*Args:\\n\\s*(.*?)[\\n\\s]*(Returns:|Raises:|\\Z)'),
+          Attribute(
+            value=Name(id='re', ctx=Load()),
+            attr='DOTALL',
+            ctx=Load())])),
+    Assign(
+      targets=[
+        Name(id='args_split_re', ctx=Store())],
+      value=Call(
+        func=Attribute(
+          value=Name(id='re', ctx=Load()),
+          attr='compile',
+          ctx=Load()),
+        args=[
+          Constant(value='(?:^|\\n)\\s*(\\w+)\\s*(?:\\([^)]*?\\))?:\\s*(.*?)\\s*(?=\\n\\s*\\w+\\s*(?:\\([^)]*?\\))?:|\\Z)'),
+          BinOp(
+            left=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='DOTALL',
+              ctx=Load()),
+            op=BitOr(),
+            right=Attribute(
+              value=Name(id='re', ctx=Load()),
+              attr='VERBOSE',
+              ctx=Load()))])),
+    Assign(
+      targets=[
+        Name(id='returns_re', ctx=Store())],
+      value=Call(
+        func=Attribute(
+          value=Name(id='re', ctx=Load()),
+          attr='compile',
+          ctx=Load()),
+        args=[
+          Constant(value='\\n\\s*Returns:\\n\\s*(?:[^)]*?:\\s*)?(.*?)[\\n\\s]*(Raises:|\\Z)'),
+          Attribute(
+            value=Name(id='re', ctx=Load()),
+            attr='DOTALL',
+            ctx=Load())])),
+    FunctionDef(
+      name='_parse_google_format_docstring',
+      args=arguments(
+        args=[
+          arg(
+            arg='docstring',
+            annotation=Name(id='str', ctx=Load()))]),
+      body=[
+        Expr(
+          value=Constant(value='\n    Parses a Google-style docstring to extract the function description,\n    argument descriptions, and return description.\n\n    Args:\n        docstring (str): The docstring to parse.\n\n    Returns:\n        The function description, arguments, and return description.\n    ')),
+        Assign(
+          targets=[
+            Name(id='description_match', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='description_re', ctx=Load()),
+              attr='search',
+              ctx=Load()),
+            args=[
+              Name(id='docstring', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='args_match', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='args_re', ctx=Load()),
+              attr='search',
+              ctx=Load()),
+            args=[
+              Name(id='docstring', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='returns_match', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='returns_re', ctx=Load()),
+              attr='search',
+              ctx=Load()),
+            args=[
+              Name(id='docstring', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='description', ctx=Store())],
+          value=IfExp(
+            test=Name(id='description_match', ctx=Load()),
+            body=Call(
+              func=Attribute(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='description_match', ctx=Load()),
+                    attr='group',
+                    ctx=Load()),
+                  args=[
+                    Constant(value=1)]),
+                attr='strip',
+                ctx=Load())),
+            orelse=Constant(value=None))),
+        Assign(
+          targets=[
+            Name(id='docstring_args', ctx=Store())],
+          value=IfExp(
+            test=Name(id='args_match', ctx=Load()),
+            body=Call(
+              func=Attribute(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='args_match', ctx=Load()),
+                    attr='group',
+                    ctx=Load()),
+                  args=[
+                    Constant(value=1)]),
+                attr='strip',
+                ctx=Load())),
+            orelse=Constant(value=None))),
+        Assign(
+          targets=[
+            Name(id='returns', ctx=Store())],
+          value=IfExp(
+            test=Name(id='returns_match', ctx=Load()),
+            body=Call(
+              func=Attribute(
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='returns_match', ctx=Load()),
+                    attr='group',
+                    ctx=Load()),
+                  args=[
+                    Constant(value=1)]),
+                attr='strip',
+                ctx=Load())),
+            orelse=Constant(value=None))),
+        If(
+          test=Compare(
+            left=Name(id='docstring_args', ctx=Load()),
+            ops=[
+              IsNot()],
+            comparators=[
+              Constant(value=None)]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='docstring_args', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Constant(value='\n'),
+                  attr='join',
+                  ctx=Load()),
+                args=[
+                  ListComp(
+                    elt=Name(id='line', ctx=Load()),
+                    generators=[
+                      comprehension(
+                        target=Name(id='line', ctx=Store()),
+                        iter=Call(
+                          func=Attribute(
+                            value=Name(id='docstring_args', ctx=Load()),
+                            attr='split',
+                            ctx=Load()),
+                          args=[
+                            Constant(value='\n')]),
+                        ifs=[
+                          Call(
+                            func=Attribute(
+                              value=Name(id='line', ctx=Load()),
+                              attr='strip',
+                              ctx=Load()))],
+                        is_async=0)])])),
+            Assign(
+              targets=[
+                Name(id='matches', ctx=Store())],
+              value=Call(
+                func=Attribute(
+                  value=Name(id='args_split_re', ctx=Load()),
+                  attr='findall',
+                  ctx=Load()),
+                args=[
+                  Name(id='docstring_args', ctx=Load())])),
+            Assign(
+              targets=[
+                Name(id='args_dict', ctx=Store())],
+              value=DictComp(
+                key=Subscript(
+                  value=Name(id='match', ctx=Load()),
+                  slice=Constant(value=0),
+                  ctx=Load()),
+                value=Call(
+                  func=Attribute(
+                    value=Name(id='re', ctx=Load()),
+                    attr='sub',
+                    ctx=Load()),
+                  args=[
+                    Constant(value='\\s*\\n+\\s*'),
+                    Constant(value=' '),
+                    Call(
+                      func=Attribute(
+                        value=Subscript(
+                          value=Name(id='match', ctx=Load()),
+                          slice=Constant(value=1),
+                          ctx=Load()),
+                        attr='strip',
+                        ctx=Load()))]),
+                generators=[
+                  comprehension(
+                    target=Name(id='match', ctx=Store()),
+                    iter=Name(id='matches', ctx=Load()),
+                    is_async=0)]))],
+          orelse=[
+            Assign(
+              targets=[
+                Name(id='args_dict', ctx=Store())],
+              value=Dict())]),
+        Return(
+          value=Tuple(
+            elts=[
+              Name(id='description', ctx=Load()),
+              Name(id='args_dict', ctx=Load()),
+              Name(id='returns', ctx=Load())],
+            ctx=Load()))],
+      returns=Subscript(
+        value=Name(id='tuple', ctx=Load()),
+        slice=Tuple(
+          elts=[
+            BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None)),
+            BinOp(
+              left=Name(id='dict', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None)),
+            BinOp(
+              left=Name(id='str', ctx=Load()),
+              op=BitOr(),
+              right=Constant(value=None))],
+          ctx=Load()),
+        ctx=Load())),
+    FunctionDef(
+      name='_convert_type_hints_to_json_schema',
+      args=arguments(
+        args=[
+          arg(
+            arg='func',
+            annotation=Name(id='Callable', ctx=Load())),
+          arg(
+            arg='error_on_missing_type_hints',
+            annotation=Name(id='bool', ctx=Load()))],
+        defaults=[
+          Constant(value=True)]),
+      body=[
+        Assign(
+          targets=[
+            Name(id='type_hints', ctx=Store())],
+          value=Call(
+            func=Name(id='get_type_hints', ctx=Load()),
+            args=[
+              Name(id='func', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='signature', ctx=Store())],
+          value=Call(
+            func=Attribute(
+              value=Name(id='inspect', ctx=Load()),
+              attr='signature',
+              ctx=Load()),
+            args=[
+              Name(id='func', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='properties', ctx=Store())],
+          value=Dict()),
+        For(
+          target=Tuple(
+            elts=[
+              Name(id='param_name', ctx=Store()),
+              Name(id='param_type', ctx=Store())],
+            ctx=Store()),
+          iter=Call(
+            func=Attribute(
+              value=Name(id='type_hints', ctx=Load()),
+              attr='items',
+              ctx=Load())),
+          body=[
+            Assign(
+              targets=[
+                Subscript(
+                  value=Name(id='properties', ctx=Load()),
+                  slice=Name(id='param_name', ctx=Load()),
+                  ctx=Store())],
+              value=Call(
+                func=Name(id='_parse_type_hint', ctx=Load()),
+                args=[
+                  Name(id='param_type', ctx=Load())]))]),
+        Assign(
+          targets=[
+            Name(id='required', ctx=Store())],
+          value=List(ctx=Load())),
+        For(
+          target=Tuple(
+            elts=[
+              Name(id='param_name', ctx=Store()),
+              Name(id='param', ctx=Store())],
+            ctx=Store()),
+          iter=Call(
+            func=Attribute(
+              value=Attribute(
+                value=Name(id='signature', ctx=Load()),
+                attr='parameters',
+                ctx=Load()),
+              attr='items',
+              ctx=Load())),
+          body=[
+            If(
+              test=BoolOp(
+                op=And(),
+                values=[
+                  Compare(
+                    left=Attribute(
+                      value=Name(id='param', ctx=Load()),
+                      attr='annotation',
+                      ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Attribute(
+                        value=Attribute(
+                          value=Name(id='inspect', ctx=Load()),
+                          attr='Parameter',
+                          ctx=Load()),
+                        attr='empty',
+                        ctx=Load())]),
+                  Name(id='error_on_missing_type_hints', ctx=Load())]),
+              body=[
+                Raise(
+                  exc=Call(
+                    func=Name(id='TypeHintParsingException', ctx=Load()),
+                    args=[
+                      JoinedStr(
+                        values=[
+                          Constant(value='Argument '),
+                          FormattedValue(
+                            value=Attribute(
+                              value=Name(id='param', ctx=Load()),
+                              attr='name',
+                              ctx=Load()),
+                            conversion=-1),
+                          Constant(value=' is missing a type hint in function '),
+                          FormattedValue(
+                            value=Attribute(
+                              value=Name(id='func', ctx=Load()),
+                              attr='__name__',
+                              ctx=Load()),
+                            conversion=-1)])]))]),
+            If(
+              test=Compare(
+                left=Name(id='param_name', ctx=Load()),
+                ops=[
+                  NotIn()],
+                comparators=[
+                  Name(id='properties', ctx=Load())]),
+              body=[
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Name(id='properties', ctx=Load()),
+                      slice=Name(id='param_name', ctx=Load()),
+                      ctx=Store())],
+                  value=Dict())]),
+            If(
+              test=Compare(
+                left=Attribute(
+                  value=Name(id='param', ctx=Load()),
+                  attr='default',
+                  ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Attribute(
+                    value=Attribute(
+                      value=Name(id='inspect', ctx=Load()),
+                      attr='Parameter',
+                      ctx=Load()),
+                    attr='empty',
+                    ctx=Load())]),
+              body=[
+                Expr(
+                  value=Call(
+                    func=Attribute(
+                      value=Name(id='required', ctx=Load()),
+                      attr='append',
+                      ctx=Load()),
+                    args=[
+                      Name(id='param_name', ctx=Load())]))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Subscript(
+                      value=Subscript(
+                        value=Name(id='properties', ctx=Load()),
+                        slice=Name(id='param_name', ctx=Load()),
+                        ctx=Load()),
+                      slice=Constant(value='nullable'),
+                      ctx=Store())],
+                  value=Constant(value=True))])]),
+        If(
+          test=BoolOp(
+            op=And(),
+            values=[
+              Compare(
+                left=Constant(value='return'),
+                ops=[
+                  In()],
+                comparators=[
+                  Name(id='properties', ctx=Load())]),
+              NamedExpr(
+                target=Name(id='return_type', ctx=Store()),
+                value=Call(
+                  func=Attribute(
+                    value=Subscript(
+                      value=Name(id='properties', ctx=Load()),
+                      slice=Constant(value='return'),
+                      ctx=Load()),
+                    attr='get',
+                    ctx=Load()),
+                  args=[
+                    Constant(value='type')])),
+              UnaryOp(
+                op=Not(),
+                operand=Call(
+                  func=Name(id='isinstance', ctx=Load()),
+                  args=[
+                    Name(id='return_type', ctx=Load()),
+                    Name(id='str', ctx=Load())]))]),
+          body=[
+            Assign(
+              targets=[
+                Subscript(
+                  value=Subscript(
+                    value=Name(id='properties', ctx=Load()),
+                    slice=Constant(value='return'),
+                    ctx=Load()),
+                  slice=Constant(value='type'),
+                  ctx=Store())],
+              value=Constant(value='any'))]),
+        Assign(
+          targets=[
+            Name(id='schema', ctx=Store())],
+          value=Dict(
+            keys=[
+              Constant(value='type'),
+              Constant(value='properties')],
+            values=[
+              Constant(value='object'),
+              Name(id='properties', ctx=Load())])),
+        If(
+          test=Name(id='required', ctx=Load()),
+          body=[
+            Assign(
+              targets=[
+                Subscript(
+                  value=Name(id='schema', ctx=Load()),
+                  slice=Constant(value='required'),
+                  ctx=Store())],
+              value=Name(id='required', ctx=Load()))]),
+        Return(
+          value=Name(id='schema', ctx=Load()))],
+      returns=Name(id='dict', ctx=Load())),
+    FunctionDef(
+      name='_parse_type_hint',
+      args=arguments(
+        args=[
+          arg(
+            arg='hint',
+            annotation=Name(id='type', ctx=Load()))]),
+      body=[
+        Assign(
+          targets=[
+            Name(id='origin', ctx=Store())],
+          value=Call(
+            func=Name(id='get_origin', ctx=Load()),
+            args=[
+              Name(id='hint', ctx=Load())])),
+        Assign(
+          targets=[
+            Name(id='args', ctx=Store())],
+          value=Call(
+            func=Name(id='get_args', ctx=Load()),
+            args=[
+              Name(id='hint', ctx=Load())])),
+        If(
+          test=Compare(
+            left=Name(id='origin', ctx=Load()),
+            ops=[
+              Is()],
+            comparators=[
+              Constant(value=None)]),
+          body=[
+            Try(
+              body=[
+                Return(
+                  value=Call(
+                    func=Name(id='_get_json_schema_type', ctx=Load()),
+                    args=[
+                      Name(id='hint', ctx=Load())]))],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='KeyError', ctx=Load()),
+                  body=[
+                    Raise(
+                      exc=Call(
+                        func=Name(id='TypeHintParsingException', ctx=Load()),
+                        args=[
+                          Constant(value="Couldn't parse this type hint, likely due to a custom class or object: "),
+                          Name(id='hint', ctx=Load())]))])])],
+          orelse=[
+            If(
+              test=BoolOp(
+                op=Or(),
+                values=[
+                  Compare(
+                    left=Name(id='origin', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Name(id='Union', ctx=Load())]),
+                  BoolOp(
+                    op=And(),
+                    values=[
+                      Call(
+                        func=Name(id='hasattr', ctx=Load()),
+                        args=[
+                          Name(id='types', ctx=Load()),
+                          Constant(value='UnionType')]),
+                      Compare(
+                        left=Name(id='origin', ctx=Load()),
+                        ops=[
+                          Is()],
+                        comparators=[
+                          Attribute(
+                            value=Name(id='types', ctx=Load()),
+                            attr='UnionType',
+                            ctx=Load())])])]),
+              body=[
+                Return(
+                  value=Call(
+                    func=Name(id='_parse_union_type', ctx=Load()),
+                    args=[
+                      Name(id='args', ctx=Load())]))],
+              orelse=[
+                If(
+                  test=Compare(
+                    left=Name(id='origin', ctx=Load()),
+                    ops=[
+                      Is()],
+                    comparators=[
+                      Name(id='list', ctx=Load())]),
+                  body=[
+                    If(
+                      test=UnaryOp(
+                        op=Not(),
+                        operand=Name(id='args', ctx=Load())),
+                      body=[
+                        Return(
+                          value=Dict(
+                            keys=[
+                              Constant(value='type')],
+                            values=[
+                              Constant(value='array')]))],
+                      orelse=[
+                        Return(
+                          value=Dict(
+                            keys=[
+                              Constant(value='type'),
+                              Constant(value='items')],
+                            values=[
+                              Constant(value='array'),
+                              Call(
+                                func=Name(id='_parse_type_hint', ctx=Load()),
+                                args=[
+                                  Subscript(
+                                    value=Name(id='args', ctx=Load()),
+                                    slice=Constant(value=0),
+                                    ctx=Load())])]))])],
+                  orelse=[
+                    If(
+                      test=Compare(
+                        left=Name(id='origin', ctx=Load()),
+                        ops=[
+                          Is()],
+                        comparators=[
+                          Name(id='tuple', ctx=Load())]),
+                      body=[
+                        If(
+                          test=UnaryOp(
+                            op=Not(),
+                            operand=Name(id='args', ctx=Load())),
+                          body=[
+                            Return(
+                              value=Dict(
+                                keys=[
+                                  Constant(value='type')],
+                                values=[
+                                  Constant(value='array')]))]),
+                        If(
+                          test=Compare(
+                            left=Call(
+                              func=Name(id='len', ctx=Load()),
+                              args=[
+                                Name(id='args', ctx=Load())]),
+                            ops=[
+                              Eq()],
+                            comparators=[
+                              Constant(value=1)]),
+                          body=[
+                            Raise(
+                              exc=Call(
+                                func=Name(id='TypeHintParsingException', ctx=Load()),
+                                args=[
+                                  JoinedStr(
+                                    values=[
+                                      Constant(value='The type hint '),
+                                      FormattedValue(
+                                        value=Call(
+                                          func=Attribute(
+                                            value=Call(
+                                              func=Name(id='str', ctx=Load()),
+                                              args=[
+                                                Name(id='hint', ctx=Load())]),
+                                            attr='replace',
+                                            ctx=Load()),
+                                          args=[
+                                            Constant(value='typing.'),
+                                            Constant(value='')]),
+                                        conversion=-1),
+                                      Constant(value=' is a Tuple with a single element, which we do not automatically convert to JSON schema as it is rarely necessary. If this input can contain more than one element, we recommend using a List[] type instead, or if it really is a single element, remove the Tuple[] wrapper and just pass the element directly.')])]))]),
+                        If(
+                          test=Compare(
+                            left=Constant(value=Ellipsis),
+                            ops=[
+                              In()],
+                            comparators=[
+                              Name(id='args', ctx=Load())]),
+                          body=[
+                            Raise(
+                              exc=Call(
+                                func=Name(id='TypeHintParsingException', ctx=Load()),
+                                args=[
+                                  Constant(value="Conversion of '...' is not supported in Tuple type hints. Use List[] types for variable-length inputs instead.")]))]),
+                        Return(
+                          value=Dict(
+                            keys=[
+                              Constant(value='type'),
+                              Constant(value='prefixItems')],
+                            values=[
+                              Constant(value='array'),
+                              ListComp(
+                                elt=Call(
+                                  func=Name(id='_parse_type_hint', ctx=Load()),
+                                  args=[
+                                    Name(id='t', ctx=Load())]),
+                                generators=[
+                                  comprehension(
+                                    target=Name(id='t', ctx=Store()),
+                                    iter=Name(id='args', ctx=Load()),
+                                    is_async=0)])]))],
+                      orelse=[
+                        If(
+                          test=Compare(
+                            left=Name(id='origin', ctx=Load()),
+                            ops=[
+                              Is()],
+                            comparators=[
+                              Name(id='dict', ctx=Load())]),
+                          body=[
+                            Assign(
+                              targets=[
+                                Name(id='out', ctx=Store())],
+                              value=Dict(
+                                keys=[
+                                  Constant(value='type')],
+                                values=[
+                                  Constant(value='object')])),
+                            If(
+                              test=Compare(
+                                left=Call(
+                                  func=Name(id='len', ctx=Load()),
+                                  args=[
+                                    Name(id='args', ctx=Load())]),
+                                ops=[
+                                  Eq()],
+                                comparators=[
+                                  Constant(value=2)]),
+                              body=[
+                                Assign(
+                                  targets=[
+                                    Subscript(
+                                      value=Name(id='out', ctx=Load()),
+                                      slice=Constant(value='additionalProperties'),
+                                      ctx=Store())],
+                                  value=Call(
+                                    func=Name(id='_parse_type_hint', ctx=Load()),
+                                    args=[
+                                      Subscript(
+                                        value=Name(id='args', ctx=Load()),
+                                        slice=Constant(value=1),
+                                        ctx=Load())]))]),
+                            Return(
+                              value=Name(id='out', ctx=Load()))],
+                          orelse=[
+                            If(
+                              test=Compare(
+                                left=Name(id='origin', ctx=Load()),
+                                ops=[
+                                  Is()],
+                                comparators=[
+                                  Name(id='Literal', ctx=Load())]),
+                              body=[
+                                Assign(
+                                  targets=[
+                                    Name(id='literal_types', ctx=Store())],
+                                  value=Call(
+                                    func=Name(id='set', ctx=Load()),
+                                    args=[
+                                      GeneratorExp(
+                                        elt=Call(
+                                          func=Name(id='type', ctx=Load()),
+                                          args=[
+                                            Name(id='arg', ctx=Load())]),
+                                        generators=[
+                                          comprehension(
+                                            target=Name(id='arg', ctx=Store()),
+                                            iter=Name(id='args', ctx=Load()),
+                                            is_async=0)])])),
+                                Assign(
+                                  targets=[
+                                    Name(id='final_type', ctx=Store())],
+                                  value=Call(
+                                    func=Name(id='_parse_union_type', ctx=Load()),
+                                    args=[
+                                      Name(id='literal_types', ctx=Load())])),
+                                Expr(
+                                  value=Call(
+                                    func=Attribute(
+                                      value=Name(id='final_type', ctx=Load()),
+                                      attr='update',
+                                      ctx=Load()),
+                                    args=[
+                                      Dict(
+                                        keys=[
+                                          Constant(value='enum')],
+                                        values=[
+                                          ListComp(
+                                            elt=Name(id='arg', ctx=Load()),
+                                            generators=[
+                                              comprehension(
+                                                target=Name(id='arg', ctx=Store()),
+                                                iter=Name(id='args', ctx=Load()),
+                                                ifs=[
+                                                  Compare(
+                                                    left=Name(id='arg', ctx=Load()),
+                                                    ops=[
+                                                      IsNot()],
+                                                    comparators=[
+                                                      Constant(value=None)])],
+                                                is_async=0)])])])),
+                                Return(
+                                  value=Name(id='final_type', ctx=Load()))])])])])])]),
+        Raise(
+          exc=Call(
+            func=Name(id='TypeHintParsingException', ctx=Load()),
+            args=[
+              Constant(value="Couldn't parse this type hint, likely due to a custom class or object: "),
+              Name(id='hint', ctx=Load())]))],
+      returns=Name(id='dict', ctx=Load())),
+    FunctionDef(
+      name='_parse_union_type',
+      args=arguments(
+        args=[
+          arg(
+            arg='args',
+            annotation=Subscript(
+              value=Name(id='tuple', ctx=Load()),
+              slice=Tuple(
+                elts=[
+                  Name(id='Any', ctx=Load()),
+                  Constant(value=Ellipsis)],
+                ctx=Load()),
+              ctx=Load()))]),
+      body=[
+        Assign(
+          targets=[
+            Name(id='subtypes', ctx=Store())],
+          value=ListComp(
+            elt=Call(
+              func=Name(id='_parse_type_hint', ctx=Load()),
+              args=[
+                Name(id='t', ctx=Load())]),
+            generators=[
+              comprehension(
+                target=Name(id='t', ctx=Store()),
+                iter=Name(id='args', ctx=Load()),
+                ifs=[
+                  Compare(
+                    left=Name(id='t', ctx=Load()),
+                    ops=[
+                      IsNot()],
+                    comparators=[
+                      Call(
+                        func=Name(id='type', ctx=Load()),
+                        args=[
+                          Constant(value=None)])])],
+                is_async=0)])),
+        If(
+          test=Compare(
+            left=Call(
+              func=Name(id='len', ctx=Load()),
+              args=[
+                Name(id='subtypes', ctx=Load())]),
+            ops=[
+              Eq()],
+            comparators=[
+              Constant(value=1)]),
+          body=[
+            Assign(
+              targets=[
+                Name(id='return_dict', ctx=Store())],
+              value=Subscript(
+                value=Name(id='subtypes', ctx=Load()),
+                slice=Constant(value=0),
+                ctx=Load()))],
+          orelse=[
+            If(
+              test=Call(
+                func=Name(id='all', ctx=Load()),
+                args=[
+                  GeneratorExp(
+                    elt=Call(
+                      func=Name(id='isinstance', ctx=Load()),
+                      args=[
+                        Subscript(
+                          value=Name(id='subtype', ctx=Load()),
+                          slice=Constant(value='type'),
+                          ctx=Load()),
+                        Name(id='str', ctx=Load())]),
+                    generators=[
+                      comprehension(
+                        target=Name(id='subtype', ctx=Store()),
+                        iter=Name(id='subtypes', ctx=Load()),
+                        is_async=0)])]),
+              body=[
+                Assign(
+                  targets=[
+                    Name(id='return_dict', ctx=Store())],
+                  value=Dict(
+                    keys=[
+                      Constant(value='type')],
+                    values=[
+                      Call(
+                        func=Name(id='sorted', ctx=Load()),
+                        args=[
+                          ListComp(
+                            elt=Subscript(
+                              value=Name(id='subtype', ctx=Load()),
+                              slice=Constant(value='type'),
+                              ctx=Load()),
+                            generators=[
+                              comprehension(
+                                target=Name(id='subtype', ctx=Store()),
+                                iter=Name(id='subtypes', ctx=Load()),
+                                is_async=0)])])]))],
+              orelse=[
+                Assign(
+                  targets=[
+                    Name(id='return_dict', ctx=Store())],
+                  value=Dict(
+                    keys=[
+                      Constant(value='anyOf')],
+                    values=[
+                      Name(id='subtypes', ctx=Load())]))])]),
+        If(
+          test=Compare(
+            left=Call(
+              func=Name(id='type', ctx=Load()),
+              args=[
+                Constant(value=None)]),
+            ops=[
+              In()],
+            comparators=[
+              Name(id='args', ctx=Load())]),
+          body=[
+            Assign(
+              targets=[
+                Subscript(
+                  value=Name(id='return_dict', ctx=Load()),
+                  slice=Constant(value='nullable'),
+                  ctx=Store())],
+              value=Constant(value=True))]),
+        Return(
+          value=Name(id='return_dict', ctx=Load()))],
+      returns=Name(id='dict', ctx=Load())),
+    Assign(
+      targets=[
+        Name(id='_BASE_TYPE_MAPPING', ctx=Store())],
+      value=Dict(
+        keys=[
+          Name(id='int', ctx=Load()),
+          Name(id='float', ctx=Load()),
+          Name(id='str', ctx=Load()),
+          Name(id='bool', ctx=Load()),
+          Name(id='list', ctx=Load()),
+          Name(id='dict', ctx=Load()),
+          Name(id='Any', ctx=Load()),
+          Attribute(
+            value=Name(id='types', ctx=Load()),
+            attr='NoneType',
+            ctx=Load())],
+        values=[
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='integer')]),
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='number')]),
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='string')]),
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='boolean')]),
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='array')]),
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='object')]),
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='any')]),
+          Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='null')])])),
+    FunctionDef(
+      name='_get_json_schema_type',
+      args=arguments(
+        args=[
+          arg(
+            arg='param_type',
+            annotation=Name(id='type', ctx=Load()))]),
+      body=[
+        If(
+          test=Compare(
+            left=Name(id='param_type', ctx=Load()),
+            ops=[
+              In()],
+            comparators=[
+              Name(id='_BASE_TYPE_MAPPING', ctx=Load())]),
+          body=[
+            Return(
+              value=Call(
+                func=Name(id='copy', ctx=Load()),
+                args=[
+                  Subscript(
+                    value=Name(id='_BASE_TYPE_MAPPING', ctx=Load()),
+                    slice=Name(id='param_type', ctx=Load()),
+                    ctx=Load())]))]),
+        If(
+          test=Compare(
+            left=Call(
+              func=Name(id='str', ctx=Load()),
+              args=[
+                Name(id='param_type', ctx=Load())]),
+            ops=[
+              Eq()],
+            comparators=[
+              Constant(value='Image')]),
+          body=[
+            ImportFrom(
+              module='PIL.Image',
+              names=[
+                alias(name='Image')],
+              level=0),
+            If(
+              test=Compare(
+                left=Name(id='param_type', ctx=Load()),
+                ops=[
+                  Eq()],
+                comparators=[
+                  Name(id='Image', ctx=Load())]),
+              body=[
+                Return(
+                  value=Dict(
+                    keys=[
+                      Constant(value='type')],
+                    values=[
+                      Constant(value='image')]))])]),
+        If(
+          test=Compare(
+            left=Call(
+              func=Name(id='str', ctx=Load()),
+              args=[
+                Name(id='param_type', ctx=Load())]),
+            ops=[
+              Eq()],
+            comparators=[
+              Constant(value='Tensor')]),
+          body=[
+            Try(
+              body=[
+                ImportFrom(
+                  module='torch',
+                  names=[
+                    alias(name='Tensor')],
+                  level=0),
+                If(
+                  test=Compare(
+                    left=Name(id='param_type', ctx=Load()),
+                    ops=[
+                      Eq()],
+                    comparators=[
+                      Name(id='Tensor', ctx=Load())]),
+                  body=[
+                    Return(
+                      value=Dict(
+                        keys=[
+                          Constant(value='type')],
+                        values=[
+                          Constant(value='audio')]))])],
+              handlers=[
+                ExceptHandler(
+                  type=Name(id='ModuleNotFoundError', ctx=Load()),
+                  body=[
+                    Pass()])])]),
+        Return(
+          value=Dict(
+            keys=[
+              Constant(value='type')],
+            values=[
+              Constant(value='object')]))],
+      returns=Subscript(
+        value=Name(id='dict', ctx=Load()),
+        slice=Tuple(
+          elts=[
+            Name(id='str', ctx=Load()),
+            Name(id='str', ctx=Load())],
+          ctx=Load()),
+        ctx=Load()))])
